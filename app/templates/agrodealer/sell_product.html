@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Sell Product{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Sell Product</h2>
+        
+        <form method="POST" class="space-y-4">
+            <!-- Citizen Selection -->
+            <div>
+                <label for="citizen" class="block text-sm font-medium text-gray-700">Select Citizen</label>
+                <select id="citizen" name="citizen_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Select a citizen</option>
+                    {% for citizen in citizens %}
+                    <option value="{{ citizen.id }}" 
+                            data-plot-size="{{ citizen.plot_size }}"
+                            data-allowed-seeds="{{ citizen.allowed_seeds }}"
+                            data-allowed-fertilizer="{{ citizen.allowed_fertilizer }}">
+                        {{ citizen.name }} ({{ citizen.national_id }}) - {{ citizen.plot_size }} acres
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Product Selection -->
+            <div>
+                <label for="product" class="block text-sm font-medium text-gray-700">Select Product</label>
+                <select id="product" name="product_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Select a product</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}" 
+                            data-price="{{ product.price_per_unit }}"
+                            data-units-per-sqm="{{ product.units_per_sqm }}"
+                            data-stock="{{ stock_levels.get(product.id, 0) }}"
+                            data-type="{{ product.type }}"
+                            data-unit="{{ product.unit }}">
+                        {{ product.name }} - {{ product.price_per_unit }} per {{ product.unit }} 
+                        (Stock: {{ stock_levels.get(product.id, 0) }} {{ product.unit }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Display Citizen's Land Size -->
+            <div id="land-size-info" class="hidden">
+                <p class="text-sm text-gray-600">Selected citizen has <span id="plot-size">0</span> acres of plot</p>
+            </div>
+
+            <!-- Display Stock Info -->
+            <div id="stock-info" class="hidden">
+                <p class="text-sm text-gray-600">Available stock: <span id="available-stock">0</span> <span id="stock-unit">kg</span></p>
+            </div>
+
+            <!-- Display Maximum Allowed Quantity -->
+            <div id="max-quantity-info" class="hidden">
+                <p class="text-sm text-gray-600">Maximum allowed quantity: <span id="max-quantity">0</span> <span id="unit-display">kg</span></p>
+            </div>
+
+            <!-- Quantity Input -->
+            <div>
+                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                <input type="number" id="quantity" name="quantity" step="0.01" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter quantity">
+                <p id="quantity-error" class="mt-1 text-sm text-red-600 hidden">Quantity exceeds maximum allowed</p>
+            </div>
+
+            <!-- Total Amount -->
+            <div id="total-amount" class="hidden">
+                <p class="text-lg font-semibold text-gray-800">Total Amount: <span id="amount">0</span></p>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Complete Sale
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const citizenSelect = document.getElementById('citizen');
+    const productSelect = document.getElementById('product');
+    const quantityInput = document.getElementById('quantity');
+    const landSizeInfo = document.getElementById('land-size-info');
+    const stockInfo = document.getElementById('stock-info');
+    const maxQuantityInfo = document.getElementById('max-quantity-info');
+    const totalAmount = document.getElementById('total-amount');
+    const quantityError = document.getElementById('quantity-error');
+    const submitBtn = document.getElementById('submit-btn');
+    const unitDisplay = document.getElementById('unit-display');
+    const stockUnit = document.getElementById('stock-unit');
+    
+    let selectedCitizen = null;
+    let selectedProduct = null;
+    
+    // Constants for conversion
+    const SQUARE_METERS_PER_ACRE = 4046.86;
+    
+    function updateCalculations() {
+        if (!selectedCitizen || !selectedProduct) return;
+        
+        const plotSize = parseFloat(selectedCitizen.dataset.plotSize);
+        const plotSizeInSqm = plotSize * SQUARE_METERS_PER_ACRE;
+        const unitsPerSqm = parseFloat(selectedProduct.dataset.unitsPerSqm) || 1.0;
+        const pricePerUnit = parseFloat(selectedProduct.dataset.price);
+        const productType = selectedProduct.dataset.type;
+        const productUnit = selectedProduct.dataset.unit;
+        const availableStock = parseFloat(selectedProduct.dataset.stock) || 0;
+        
+        // Calculate maximum allowed quantity based on product type and plot size
+        let maxAllowed;
+        if (productType === 'seed') {
+            maxAllowed = Math.min(
+                parseFloat(selectedCitizen.dataset.allowedSeeds),
+                plotSizeInSqm * unitsPerSqm,
+                availableStock
+            );
+        } else if (productType === 'fertilizer') {
+            maxAllowed = Math.min(
+                parseFloat(selectedCitizen.dataset.allowedFertilizer),
+                plotSizeInSqm * unitsPerSqm,
+                availableStock
+            );
+        } else {
+            maxAllowed = Math.min(plotSizeInSqm * unitsPerSqm, availableStock);
+        }
+        
+        // Update UI
+        document.getElementById('plot-size').textContent = plotSize;
+        document.getElementById('max-quantity').textContent = maxAllowed.toFixed(2);
+        document.getElementById('available-stock').textContent = availableStock.toFixed(2);
+        unitDisplay.textContent = productUnit;
+        stockUnit.textContent = productUnit;
+        landSizeInfo.classList.remove('hidden');
+        stockInfo.classList.remove('hidden');
+        maxQuantityInfo.classList.remove('hidden');
+        
+        // Update quantity validation
+        const quantity = parseFloat(quantityInput.value) || 0;
+        if (quantity > maxAllowed) {
+            quantityError.classList.remove('hidden');
+            submitBtn.disabled = true;
+        } else {
+            quantityError.classList.add('hidden');
+            submitBtn.disabled = false;
+        }
+        
+        // Update total amount
+        const total = quantity * pricePerUnit;
+        document.getElementById('amount').textContent = total.toFixed(2);
+        totalAmount.classList.remove('hidden');
+    }
+    
+    citizenSelect.addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        selectedCitizen = option;
+        updateCalculations();
+    });
+    
+    productSelect.addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        selectedProduct = option;
+        updateCalculations();
+    });
+    
+    quantityInput.addEventListener('input', updateCalculations);
+});
+</script>
+{% endblock %} 

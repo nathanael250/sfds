@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Reports Dashboard</h1>
+        <p class="text-gray-600">Generate and view detailed reports</p>
+    </div>
+
+    <!-- Report Generation Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form action="{{ url_for('agrodealer.generate_report') }}" method="GET" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Report Type Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                    <select name="type" class="form-select block w-full rounded-md border-gray-300">
+                        <option value="sales">Sales Report</option>
+                        <option value="stock">Stock Report</option>
+                        <option value="citizens">Citizens Report</option>
+                        <option value="products">Products Report</option>
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                    <select name="date_preset" id="datePreset" class="form-select block w-full rounded-md border-gray-300 mb-2">
+                        <option value="custom">Custom Range</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="this_week">This Week</option>
+                        <option value="last_week">Last Week</option>
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="this_year">This Year</option>
+                    </select>
+                    <div id="customDateRange" class="space-y-2">
+                        <input type="date" name="start_date" class="form-input block w-full rounded-md border-gray-300">
+                        <input type="date" name="end_date" class="form-input block w-full rounded-md border-gray-300">
+                    </div>
+                </div>
+
+                <!-- Grouping Options -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Group By</label>
+                    <select name="group_by" class="form-select block w-full rounded-md border-gray-300">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="product">By Product</option>
+                        <option value="type">By Type (Seed/Fertilizer)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Additional Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Product Type Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+                    <select name="product_type" class="form-select block w-full rounded-md border-gray-300">
+                        <option value="all">All Types</option>
+                        <option value="seed">Seeds Only</option>
+                        <option value="fertilizer">Fertilizers Only</option>
+                    </select>
+                </div>
+
+                <!-- Sort Options -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                    <select name="sort_by" class="form-select block w-full rounded-md border-gray-300">
+                        <option value="date_desc">Date (Newest First)</option>
+                        <option value="date_asc">Date (Oldest First)</option>
+                        <option value="amount_desc">Amount (Highest First)</option>
+                        <option value="amount_asc">Amount (Lowest First)</option>
+                        <option value="quantity_desc">Quantity (Highest First)</option>
+                        <option value="quantity_asc">Quantity (Lowest First)</option>
+                    </select>
+                </div>
+
+                <!-- Export Format -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
+                    <select name="export_format" class="form-select block w-full rounded-md border-gray-300">
+                        <option value="web">View in Browser</option>
+                        <option value="pdf">Export as PDF</option>
+                        <option value="excel">Export as Excel</option>
+                        <option value="csv">Export as CSV</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-4">
+                <button type="reset" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Reset Filters
+                </button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                    Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Reports -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Today's Summary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Today's Summary</h3>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-500">Total Sales</p>
+                    <p class="text-2xl font-bold text-indigo-600">Ksh {{ "%.2f"|format(today_stats.total_sales) }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Transactions</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ today_stats.transactions }}</p>
+                </div>
+                <a href="{{ url_for('agrodealer.generate_report', type='sales', date_preset='today') }}" 
+                   class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                    View Details →
+                </a>
+            </div>
+        </div>
+
+        <!-- This Month's Summary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">This Month's Summary</h3>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-500">Total Sales</p>
+                    <p class="text-2xl font-bold text-indigo-600">Ksh {{ "%.2f"|format(month_stats.total_sales) }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Products Sold</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ month_stats.products_sold }}</p>
+                </div>
+                <a href="{{ url_for('agrodealer.generate_report', type='sales', date_preset='this_month') }}"
+                   class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                    View Details →
+                </a>
+            </div>
+        </div>
+
+        <!-- Stock Summary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Current Stock Summary</h3>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-500">Total Products</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ stock_stats.total_products }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Low Stock Items</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ stock_stats.low_stock_items }}</p>
+                </div>
+                <a href="{{ url_for('agrodealer.generate_report', type='stock') }}"
+                   class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                    View Details →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Preset Script -->
+<script>
+document.getElementById('datePreset').addEventListener('change', function() {
+    const customDateRange = document.getElementById('customDateRange');
+    customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+    
+    if (this.value !== 'custom') {
+        const today = new Date();
+        let startDate = new Date();
+        let endDate = new Date();
+        
+        switch(this.value) {
+            case 'today':
+                break;
+            case 'yesterday':
+                startDate.setDate(today.getDate() - 1);
+                endDate = startDate;
+                break;
+            case 'this_week':
+                startDate.setDate(today.getDate() - today.getDay());
+                break;
+            case 'last_week':
+                startDate.setDate(today.getDate() - today.getDay() - 7);
+                endDate.setDate(today.getDate() - today.getDay() - 1);
+                break;
+            case 'this_month':
+                startDate.setDate(1);
+                break;
+            case 'last_month':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case 'this_year':
+                startDate = new Date(today.getFullYear(), 0, 1);
+                break;
+        }
+        
+        document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
+        document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %} 

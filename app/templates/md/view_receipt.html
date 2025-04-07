@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}View Receipt - MD{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">View Receipt</h1>
+        <p class="text-gray-600">Review the uploaded receipt for verification</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Stock Request Details</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Agrodealer</p>
+                    <p class="mt-1 text-sm text-gray-900">{{ request.requester.username }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Product</p>
+                    <p class="mt-1 text-sm text-gray-900">{{ request.product.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Quantity</p>
+                    <p class="mt-1 text-sm text-gray-900">{{ request.quantity }} {{ request.product.unit }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Request Date</p>
+                    <p class="mt-1 text-sm text-gray-900">{{ request.created_at.strftime('%Y-%m-%d') }}</p>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Uploaded Receipt</h3>
+                {% if request.receipt_path %}
+                    {% if request.receipt_path.lower().endswith(('.png', '.jpg', '.jpeg')) %}
+                        <img src="{{ url_for('md.view_receipt', request_id=request.id) }}" alt="Receipt" class="max-w-full h-auto rounded-lg shadow-md">
+                    {% else %}
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">PDF Document</p>
+                            <a href="{{ url_for('md.view_receipt', request_id=request.id) }}" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" target="_blank">
+                                <i class="fas fa-file-pdf mr-2"></i> View PDF
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-sm text-gray-500">No receipt uploaded</p>
+                {% endif %}
+            </div>
+
+            <div class="mt-6 flex space-x-4">
+                <form action="{{ url_for('md.verify_receipt', request_id=request.id) }}" method="post" class="inline">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                        <i class="fas fa-check mr-2"></i> Verify Receipt
+                    </button>
+                </form>
+                <form action="{{ url_for('md.reject_receipt', request_id=request.id) }}" method="post" class="inline">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" onclick="return confirm('Are you sure you want to reject this receipt?')">
+                        <i class="fas fa-times mr-2"></i> Reject Receipt
+                    </button>
+                </form>
+                <a href="{{ url_for('md.pending_verifications') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Agrodealer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Agrodealer Dashboard</h1>
+        <p class="text-gray-600">Welcome, {{ current_user.username }}</p>
+    </div>
+
+    <!-- Notifications Section -->
+    {% if notifications %}
+    <div class="mb-8">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Notifications</h2>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% for notification in notifications %}
+                <div class="p-4 {% if not notification.is_read %}bg-blue-50{% endif %}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">{{ notification.title }}</h3>
+                            <p class="mt-1 text-sm text-gray-600">{{ notification.message }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        {% if not notification.is_read %}
+                        <form action="{{ url_for('agrodealer.mark_notification_read', notification_id=notification.id) }}" method="post" class="inline">
+                            <button type="submit" class="text-sm text-blue-600 hover:text-blue-800">
+                                Mark as read
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Actions Section -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Pending Actions</h2>
+        {% if pending_actions %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for action in pending_actions %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-medium text-gray-900">{{ action.title }}</h3>
+                <p class="text-gray-600 mt-1">{{ action.message }}</p>
+                <div class="mt-4">
+                    <a href="{{ action.url }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        {{ action.button_text }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600">No pending actions at this time.</p>
+        {% endif %}
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900">Pending Requests</h3>
+            <p class="mt-2 text-3xl font-bold text-blue-600">{{ pending_requests }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900">Approved Requests</h3>
+            <p class="mt-2 text-3xl font-bold text-green-600">{{ approved_requests }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900">Verified Stock</h3>
+            <p class="mt-2 text-3xl font-bold text-purple-600">{{ verified_requests }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900">Total Citizens</h3>
+            <p class="mt-2 text-3xl font-bold text-indigo-600">{{ total_citizens }}</p>
+        </div>
+    </div>
+
+    <!-- Recent Stock Requests -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Recent Stock Requests</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for request in recent_requests %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ request.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif request.status == 'approved_by_sao' %}bg-blue-100 text-blue-800
+                                {% elif request.status == 'approved_by_md' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ request.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No recent stock requests</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Available Stock -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Available Stock</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for stock in available_stock %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ stock.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.product.type|title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.quantity }} {{ stock.product.unit }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ stock.last_updated.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No stock available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

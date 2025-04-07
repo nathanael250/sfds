@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Stock Management Dashboard</h1>
+            <p class="text-gray-600 mt-1">Overview of stock requests and approvals</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Pending Requests -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Pending Requests</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ pending_requests }}</p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+            </div>
+            <a href="{{ url_for('md.stock_requests') }}" class="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                View Details
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Approved Requests -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Approved Requests</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ approved_requests }}</p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <a href="{{ url_for('md.stock_verifications') }}" class="mt-4 inline-flex items-center text-sm text-green-600 hover:text-green-800">
+                View Details
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Pending Verifications -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Pending Verifications</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ pending_verifications }}</p>
+                </div>
+                <div class="p-3 bg-yellow-100 rounded-full">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <a href="{{ url_for('md.stock_verifications') }}" class="mt-4 inline-flex items-center text-sm text-yellow-600 hover:text-yellow-800">
+                View Details
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Rejected Requests -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Rejected Requests</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ rejected_requests }}</p>
+                </div>
+                <div class="p-3 bg-red-100 rounded-full">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Requests -->
+        <div class="bg-white rounded-lg shadow-md">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Pending Requests</h2>
+                    <span class="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">{{ recent_requests|length }} Recent</span>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% if recent_requests %}
+                    {% for request in recent_requests %}
+                        <div class="p-6 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.product.name }}</p>
+                                        <p class="text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium text-gray-900">{{ request.requester.username }}</p>
+                                        <p class="text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">No pending requests</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Verifications -->
+        <div class="bg-white rounded-lg shadow-md">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Pending Verifications</h2>
+                    <span class="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full">{{ recent_verifications|length }} Recent</span>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% if recent_verifications %}
+                    {% for request in recent_verifications %}
+                        <div class="p-6 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.product.name }}</p>
+                                        <p class="text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium text-gray-900">{{ request.requester.username }}</p>
+                                        <p class="text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">No pending verifications</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

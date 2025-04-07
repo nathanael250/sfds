@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Request Details{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Request Details</h1>
+        <p class="text-gray-600">View details and comments for your stock request</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6">
+            <!-- Request Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 mb-2">Product Information</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                            <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ request.product.name }}</p>
+                            <p class="text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 mb-2">Request Status</h2>
+                    <div class="flex items-center">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if request.status == 'pending' %}
+                                bg-yellow-100 text-yellow-800
+                            {% elif request.status == 'approved_by_sao' %}
+                                bg-blue-100 text-blue-800
+                            {% elif request.status == 'approved_by_md' %}
+                                bg-green-100 text-green-800
+                            {% elif request.status == 'purchase_verified' %}
+                                bg-purple-100 text-purple-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ request.status.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Request Timeline</h2>
+                <div class="space-y-4">
+                    <!-- Request Created -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">Request Submitted</p>
+                            <p class="text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </div>
+
+                    <!-- SAO Review -->
+                    {% if request.status != 'pending' %}
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">SAO Review</p>
+                            <p class="text-sm text-gray-500">{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% if request.sao_comment %}
+                            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-700">{{ request.sao_comment }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- MD Review -->
+                    {% if request.status in ['approved_by_md', 'rejected', 'purchase_verified'] %}
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">MD Review</p>
+                            <p class="text-sm text-gray-500">{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% if request.md_comment %}
+                            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-700">{{ request.md_comment }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Purchase Verification -->
+                    {% if request.status == 'purchase_verified' %}
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-900">Purchase Verified</p>
+                            <p class="text-sm text-gray-500">{{ request.receipt_verified_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('agrodealer.stock_requests') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back to Requests
+                </a>
+                {% if request.status == 'approved_by_md' and not request.receipt_path %}
+                <a href="{{ url_for('agrodealer.upload_receipt', request_id=request.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Upload Receipt
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

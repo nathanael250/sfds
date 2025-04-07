@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmed Requests - MD{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Confirmed Requests</h1>
+        <p class="text-gray-600">View all stock requests that have been approved by both SAO and MD</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Approved Requests</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agrodealer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for request in requests %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ request.requester.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if request.status == 'approved_by_md' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Approved
+                            </span>
+                            {% elif request.status == 'purchase_verified' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                Purchase Verified
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {% if request.status == 'approved_by_md' %}
+                            <a href="{{ url_for('md.pending_verifications') }}" class="text-indigo-600 hover:text-indigo-900">
+                                <i class="fas fa-check-circle"></i> Verify Purchase
+                            </a>
+                            {% elif request.status == 'purchase_verified' %}
+                            <span class="text-green-600">
+                                <i class="fas fa-check"></i> Verified
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No confirmed requests found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

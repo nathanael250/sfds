@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Sales Report</h1>
+            <p class="text-gray-600">
+                {% if start_date and end_date %}
+                    {{ start_date.strftime('%B %d, %Y') }} - {{ end_date.strftime('%B %d, %Y') }}
+                {% else %}
+                    All Time
+                {% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('agrodealer.reports') }}" class="text-indigo-600 hover:text-indigo-800">
+            ← Back to Reports
+        </a>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Sales</h3>
+            <p class="text-3xl font-bold text-indigo-600">Ksh {{ "%.2f"|format(total_sales) }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Transactions</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ transactions|length }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Products Sold</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ products_sold|length }}</p>
+        </div>
+    </div>
+
+    <!-- Products Breakdown -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Products Breakdown</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Sold</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product_name, quantity in products_sold.items() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ product_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.2f"|format(quantity) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% set revenue = 0 %}
+                            {% for t in transactions if t.product.name == product_name %}
+                                {% set revenue = revenue + t.total_amount %}
+                            {% endfor %}
+                            Ksh {{ "%.2f"|format(revenue) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Transaction History</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ transaction.product.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.citizen.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.2f"|format(transaction.quantity) }} {{ transaction.product.unit }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            Ksh {{ "%.2f"|format(transaction.total_amount) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

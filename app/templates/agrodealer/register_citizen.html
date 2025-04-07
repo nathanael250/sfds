@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Register Citizen{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Register New Citizen</h2>
+        
+        <form method="POST" class="space-y-4">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                <input type="text" id="name" name="name" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter citizen's full name">
+            </div>
+
+            <div>
+                <label for="national_id" class="block text-sm font-medium text-gray-700">National ID</label>
+                <input type="text" id="national_id" name="national_id" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter national ID number">
+            </div>
+            
+            <div>
+                <label for="upi_number" class="block text-sm font-medium text-gray-700">UPI Number</label>
+                <input type="text" id="upi_number" name="upi_number" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter UPI number">
+            </div>
+
+            <div>
+                <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                <input type="tel" id="phone_number" name="phone_number" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter phone number">
+            </div>
+            
+            <div>
+                <label for="plot_size" class="block text-sm font-medium text-gray-700">Plot Size (acres)</label>
+                <input type="number" id="plot_size" name="plot_size" step="0.01" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter plot size in acres">
+            </div>
+
+            <div>
+                <label for="allowed_seeds" class="block text-sm font-medium text-gray-700">Allowed Seeds (kg)</label>
+                <input type="number" id="allowed_seeds" name="allowed_seeds" step="0.01" value="0"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter allowed seeds in kg">
+            </div>
+
+            <div>
+                <label for="allowed_fertilizer" class="block text-sm font-medium text-gray-700">Allowed Fertilizer (kg)</label>
+                <input type="number" id="allowed_fertilizer" name="allowed_fertilizer" step="0.01" value="0"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                       placeholder="Enter allowed fertilizer in kg">
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Register Citizen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

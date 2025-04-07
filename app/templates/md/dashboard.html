@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}MD Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Stock Management Dashboard</h1>
+        <p class="text-gray-600">Welcome, {{ current_user.username }}</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 transform translate-x-6 -translate-y-6 opacity-10">
+                <svg class="w-full h-full text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Pending Requests</h3>
+            <p class="mt-2 text-3xl font-bold text-blue-600">{{ pending_requests }}</p>
+            <a href="{{ url_for('md.stock_requests') }}" class="mt-2 inline-block text-sm text-blue-600 hover:text-blue-800">
+                View Details →
+            </a>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 transform translate-x-6 -translate-y-6 opacity-10">
+                <svg class="w-full h-full text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Approved Requests</h3>
+            <p class="mt-2 text-3xl font-bold text-green-600">{{ approved_requests }}</p>
+            <a href="{{ url_for('md.confirmed_requests') }}" class="mt-2 inline-block text-sm text-green-600 hover:text-green-800">
+                View Details →
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 transform translate-x-6 -translate-y-6 opacity-10">
+                <svg class="w-full h-full text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Pending Verifications</h3>
+            <p class="mt-2 text-3xl font-bold text-yellow-600">{{ pending_verifications }}</p>
+            <a href="{{ url_for('md.pending_verifications') }}" class="mt-2 inline-block text-sm text-yellow-600 hover:text-yellow-800">
+                View Details →
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 transform translate-x-6 -translate-y-6 opacity-10">
+                <svg class="w-full h-full text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Rejected Requests</h3>
+            <p class="mt-2 text-3xl font-bold text-red-600">{{ rejected_requests }}</p>
+        </div>
+    </div>
+
+    <!-- Recent Activity Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Pending Requests -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Recent Pending Requests</h2>
+            </div>
+            <div class="p-6">
+                {% if recent_requests %}
+                <div class="space-y-4">
+                    {% for request in recent_requests %}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">{{ request.product.name }}</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    Quantity: {{ request.quantity }} {{ request.product.unit }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    Requested by: {{ request.requester.username }}
+                                </p>
+                            </div>
+                            <span class="text-sm text-gray-500">
+                                {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-600">No pending requests at this time.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pending Verifications -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Recent Pending Verifications</h2>
+            </div>
+            <div class="p-6">
+                {% if recent_verifications %}
+                <div class="space-y-4">
+                    {% for request in recent_verifications %}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">{{ request.product.name }}</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    Quantity: {{ request.quantity }} {{ request.product.unit }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    Requested by: {{ request.requester.username }}
+                                </p>
+                            </div>
+                            <span class="text-sm text-gray-500">
+                                {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-600">No pending verifications at this time.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

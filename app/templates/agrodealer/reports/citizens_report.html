@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Citizens Report{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Citizens Report</h1>
+            <p class="text-gray-600">
+                {% if start_date and end_date %}
+                    {{ start_date.strftime('%B %d, %Y') }} - {{ end_date.strftime('%B %d, %Y') }}
+                {% else %}
+                    All Time
+                {% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('agrodealer.reports') }}" class="text-indigo-600 hover:text-indigo-800">
+            ← Back to Reports
+        </a>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Citizens</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ total_citizens }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Plot Size</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ "%.2f"|format(total_plot_size) }} acres</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Average Plot Size</h3>
+            <p class="text-3xl font-bold text-indigo-600">
+                {{ "%.2f"|format(total_plot_size / total_citizens if total_citizens > 0 else 0) }} acres
+            </p>
+        </div>
+    </div>
+
+    <!-- Citizens List -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Registered Citizens</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">National ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UPI Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plot Size</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allowed Seeds</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allowed Fertilizer</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for citizen in citizens %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ citizen.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ citizen.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ citizen.national_id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ citizen.upi_number }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.2f"|format(citizen.plot_size) }} acres
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.2f"|format(citizen.allowed_seeds) }} kg
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.2f"|format(citizen.allowed_fertilizer) }} kg
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

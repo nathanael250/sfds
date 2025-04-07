@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Managing Director Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Welcome Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Managing Director Dashboard</h1>
+        <p class="text-gray-600">Welcome back, {{ current_user.username }}. Quick access to all features.</p>
+    </div>
+
+    <!-- Stock Management Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-boxes text-blue-600 text-xl mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-800">Stock Management</h2>
+        </div>
+        <p class="text-gray-600 mb-4">Manage stock requests, approvals, and verifications.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('md.stock_dashboard') }}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                <i class="fas fa-chart-line text-blue-600 text-lg mr-3"></i>
+                <span class="text-blue-800">Stock Dashboard</span>
+            </a>
+            <a href="{{ url_for('md.stock_requests') }}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                <i class="fas fa-clipboard-list text-green-600 text-lg mr-3"></i>
+                <span class="text-green-800">Stock Requests</span>
+            </a>
+            <a href="{{ url_for('md.stock_verifications') }}" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                <i class="fas fa-check-circle text-purple-600 text-lg mr-3"></i>
+                <span class="text-purple-800">Verifications</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Citizen Management Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-users text-green-600 text-xl mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-800">Citizen Management</h2>
+        </div>
+        <p class="text-gray-600 mb-4">Register and manage citizens in the system.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{{ url_for('md.citizens') }}" class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                <i class="fas fa-users text-yellow-600 text-lg mr-3"></i>
+                <span class="text-yellow-800">View Citizens</span>
+            </a>
+            <a href="{{ url_for('md.register_citizen') }}" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                <i class="fas fa-user-plus text-orange-600 text-lg mr-3"></i>
+                <span class="text-orange-800">Register Citizen</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Reports & Analytics Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-chart-bar text-indigo-600 text-xl mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-800">Reports & Analytics</h2>
+        </div>
+        <p class="text-gray-600 mb-4">View system reports and analytics.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{{ url_for('finance.financial_report') }}" class="flex items-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                <i class="fas fa-chart-bar text-indigo-600 text-lg mr-3"></i>
+                <span class="text-indigo-800">View Reports</span>
+            </a>
+            <a href="{{ url_for('md.export_data') }}" class="flex items-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                <i class="fas fa-download text-red-600 text-lg mr-3"></i>
+                <span class="text-red-800">Export Data</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Statistics Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Pending Requests</h3>
+                <i class="fas fa-clock text-2xl opacity-75"></i>
+            </div>
+            <p class="text-3xl font-bold">{{ pending_requests }}</p>
+            <p class="text-blue-100 text-sm mt-2">Awaiting approval</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Approved Requests</h3>
+                <i class="fas fa-check-circle text-2xl opacity-75"></i>
+            </div>
+            <p class="text-3xl font-bold">{{ approved_requests }}</p>
+            <p class="text-green-100 text-sm mt-2">Successfully processed</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Pending Verifications</h3>
+                <i class="fas fa-file-alt text-2xl opacity-75"></i>
+            </div>
+            <p class="text-3xl font-bold">{{ pending_verifications }}</p>
+            <p class="text-purple-100 text-sm mt-2">Awaiting verification</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Total Citizens</h3>
+                <i class="fas fa-users text-2xl opacity-75"></i>
+            </div>
+            <p class="text-3xl font-bold">{{ total_citizens }}</p>
+            <p class="text-yellow-100 text-sm mt-2">Registered in system</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

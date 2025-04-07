@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}View Citizens{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-xl font-semibold text-gray-900">Registered Citizens</h1>
+            <p class="mt-2 text-sm text-gray-700">A list of all citizens registered by you.</p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="{{ url_for('citizens.register_citizen') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+                Register New Citizen
+            </a>
+        </div>
+    </div>
+    
+    <div class="mt-8 flex flex-col">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">National ID</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UPI Number</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Phone</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Plot Size (m²)</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Allowed Seeds</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Allowed Fertilizer</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for citizen in citizens %}
+                            <tr>
+                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ citizen.name }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ citizen.national_id }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ citizen.upi_number }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ citizen.phone_number }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ "%.2f"|format(citizen.plot_size) }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ "%.2f"|format(citizen.allowed_seeds) }}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ "%.2f"|format(citizen.allowed_fertilizer) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="px-3 py-4 text-sm text-gray-500 text-center">No citizens registered yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

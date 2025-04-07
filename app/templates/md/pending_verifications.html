@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Verifications - MD{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Pending Receipt Verifications</h1>
+        <p class="text-gray-600">Review and verify receipts uploaded by agrodealers</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agrodealer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for request in requests %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ request.requester.username }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ request.product.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ request.quantity }} {{ request.product.unit }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ request.created_at.strftime('%Y-%m-%d') }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button onclick="showReceipt({{ request.id }})" 
+                                        class="text-indigo-600 hover:text-indigo-900">
+                                    View Receipt
+                                </button>
+                                <form action="{{ url_for('md.verify_receipt', request_id=request.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-green-600 hover:text-green-900">
+                                        Verify
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('md.reject_receipt', request_id=request.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-red-600 hover:text-red-900">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No pending verifications
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receiptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-3/4 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">View Receipt</h3>
+            <button onclick="closeReceiptModal()" class="text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="mt-2">
+            <div id="receiptContent" class="w-full h-[80vh] overflow-auto">
+                <!-- Receipt will be displayed here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function showReceipt(requestId) {
+    try {
+        const response = await fetch(`/md/view_receipt/${requestId}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        const receiptContent = document.getElementById('receiptContent');
+        if (data.type === 'application/pdf') {
+            // For PDF files
+            receiptContent.innerHTML = `
+                <embed src="data:${data.type};base64,${data.data}" 
+                       type="${data.type}" 
+                       width="100%" 
+                       height="100%" />
+            `;
+        } else {
+            // For image files
+            receiptContent.innerHTML = `
+                <img src="data:${data.type};base64,${data.data}" 
+                     alt="Receipt" 
+                     class="max-w-full h-auto" />
+            `;
+        }
+        
+        document.getElementById('receiptModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading receipt:', error);
+        alert('Error loading receipt. Please try again.');
+    }
+}
+
+function closeReceiptModal() {
+    document.getElementById('receiptModal').classList.add('hidden');
+    document.getElementById('receiptContent').innerHTML = '';
+}
+
+// Close modal when clicking outside
+document.getElementById('receiptModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeReceiptModal();
+    }
+});
+</script>
+{% endblock %} 

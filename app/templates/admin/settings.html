@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">System Settings</h1>
+        <p class="text-gray-600">Configure system parameters</p>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">General Settings</h2>
+            </div>
+            <div class="p-6">
+                <form method="post" class="space-y-6">
+                    <!-- Site Name -->
+                    <div>
+                        <label for="site_name" class="block text-sm font-medium text-gray-700">Site Name</label>
+                        <input type="text" name="site_name" id="site_name" value="{{ config.get('SITE_NAME', 'SFDS') }}" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Site Description -->
+                    <div>
+                        <label for="site_description" class="block text-sm font-medium text-gray-700">Site Description</label>
+                        <textarea name="site_description" id="site_description" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ config.get('SITE_DESCRIPTION', '') }}</textarea>
+                    </div>
+
+                    <!-- Contact Email -->
+                    <div>
+                        <label for="contact_email" class="block text-sm font-medium text-gray-700">Contact Email</label>
+                        <input type="email" name="contact_email" id="contact_email" value="{{ config.get('CONTACT_EMAIL', '') }}" required class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Maintenance Mode -->
+                    <div class="flex items-center">
+                        <input type="checkbox" name="maintenance_mode" id="maintenance_mode" {% if config.get('MAINTENANCE_MODE', False) %}checked{% endif %} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="maintenance_mode" class="ml-2 block text-sm text-gray-900">Maintenance Mode</label>
+                    </div>
+
+                    <!-- Registration Enabled -->
+                    <div class="flex items-center">
+                        <input type="checkbox" name="registration_enabled" id="registration_enabled" {% if config.get('REGISTRATION_ENABLED', True) %}checked{% endif %} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="registration_enabled" class="ml-2 block text-sm text-gray-900">Enable User Registration</label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

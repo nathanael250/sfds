@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Receipt - Agrodealer{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Upload Receipt</h1>
+        <p class="text-gray-600">Upload a receipt for your approved stock request</p>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Stock Request Details</h2>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Request Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Product</p>
+                            <p class="font-medium">{{ stock_request.product.name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Quantity</p>
+                            <p class="font-medium">{{ stock_request.quantity }} {{ stock_request.product.unit }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Request Date</p>
+                            <p class="font-medium">{{ stock_request.created_at.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Status</p>
+                            <p class="font-medium">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Approved by MD
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    <div>
+                        <label for="receipt" class="block text-sm font-medium text-gray-700">Receipt File</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="receipt" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <span>Upload a file</span>
+                                        <input id="receipt" name="receipt" type="file" class="sr-only" accept=".pdf,.png,.jpg,.jpeg" required>
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PDF, PNG, JPG, JPEG up to 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <a href="{{ url_for('agrodealer.stock_requests') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </a>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Upload Receipt
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

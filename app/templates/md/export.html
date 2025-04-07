@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Export Data{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Export System Data</h1>
+        <p class="text-gray-600">Export data from different modules of the system</p>
+    </div>
+
+    <!-- Export Options -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Stock Requests Export -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Stock Requests</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Export all stock requests data including status, quantities, and timestamps.</p>
+                <a href="{{ url_for('finance.export_report', type='stock_requests') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export Stock Requests
+                </a>
+            </div>
+        </div>
+
+        <!-- Citizens Export -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center mr-4">
+                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Citizens</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Export registered citizens data including personal details and allocations.</p>
+                <a href="{{ url_for('finance.export_report', type='citizens') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export Citizens
+                </a>
+            </div>
+        </div>
+
+        <!-- Products Export -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center mr-4">
+                        <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Products</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Export products data including stock levels and pricing information.</p>
+                <a href="{{ url_for('finance.export_report', type='products') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export Products
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Preview -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="border-b border-gray-200">
+            <nav class="flex" aria-label="Tabs">
+                <button class="px-6 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600 active" 
+                        onclick="switchTab(event, 'stock')" role="tab">
+                    Stock Requests
+                </button>
+                <button class="px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" 
+                        onclick="switchTab(event, 'citizens')" role="tab">
+                    Citizens
+                </button>
+                <button class="px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" 
+                        onclick="switchTab(event, 'products')" role="tab">
+                    Products
+                </button>
+            </nav>
+        </div>
+
+        <div class="overflow-x-auto">
+            <!-- Stock Requests Preview -->
+            <div id="stock" class="tab-content block">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for request in stock_requests[:10] %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ request.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ request.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.quantity }} {{ request.product.unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif request.status == 'approved_by_sao' %}bg-blue-100 text-blue-800
+                                    {% elif request.status == 'approved_by_md' %}bg-green-100 text-green-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ request.status|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.requester.username }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Citizens Preview -->
+            <div id="citizens" class="tab-content hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">National ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UPI Number</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plot Size</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for citizen in citizens[:10] %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ citizen.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ citizen.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ citizen.national_id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ citizen.upi_number }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ citizen.plot_size }} acres</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ citizen.registrar.username }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Products Preview -->
+            <div id="products" class="tab-content hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price per Unit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for product in products %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ product.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.type|title }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.price_per_unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.quantity }} {{ product.unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function switchTab(event, tabId) {
+    // Hide all tab content
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.remove('hidden');
+    
+    // Update tab button styles
+    document.querySelectorAll('[role="tab"]').forEach(button => {
+        button.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+        button.classList.add('text-gray-500');
+    });
+    
+    event.currentTarget.classList.remove('text-gray-500');
+    event.currentTarget.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+}
+</script>
+{% endblock %}
+
+{% endblock %} 
