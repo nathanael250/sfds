@@ -47,7 +47,7 @@ def index():
         my_transactions = Transaction.query.filter_by(sold_by=current_user.id).order_by(Transaction.created_at.desc()).limit(5).all()
         products = Product.query.all()
         
-        return render_template('agrodealer_dashboard.html', 
+        return render_template('agrodealer/dashboard.html', 
                              requests=my_requests,
                              transactions=my_transactions,
                              products=products)
