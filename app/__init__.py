@@ -9,6 +9,7 @@ import os
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from app.utils import register_filters
+import pdfkit
 
 migrate = Migrate()
 moment = Moment()
@@ -16,6 +17,11 @@ moment = Moment()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Configure pdfkit
+    wkhtmltopdf_path = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    if os.path.exists(wkhtmltopdf_path):
+        pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
 
     # Create upload directory if it doesn't exist
     upload_folder = os.path.join(app.root_path, 'static', 'uploads')
