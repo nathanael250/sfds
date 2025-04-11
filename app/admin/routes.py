@@ -92,3 +92,39 @@ def fix_product_table():
         flash(f'Error removing quantity field: {str(e)}', 'error')
     
     return redirect(url_for('md.index')) 
+@bp.route('/users/new', methods=['GET', 'POST'])
+@login_required
+@requires_roles('admin')
+def add_user():
+    """Register a new user from admin panel."""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role')
+        is_active = 'is_active' in request.form
+        
+        # Check if user already exists
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        
+        if existing_user:
+            flash('Username or email already exists.', 'error')
+            return render_template('admin/add_user.html')
+        
+        # Create new user
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+            role=role,
+            is_active=is_active
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        flash('User created successfully.', 'success')
+        return redirect(url_for('admin.users'))
+    
+    return render_template('admin/add_user.html')

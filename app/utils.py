@@ -2,6 +2,7 @@ from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
 from app.models import User, db
+from sqlalchemy import select
 
 def requires_roles(*roles):
     def decorator(f):
@@ -27,8 +28,11 @@ def create_test_users():
     ]
     
     for user_data in test_users:
-        user = User.query.filter_by(username=user_data['username']).first()
-        if not user:
+        # Use a specific query that doesn't include logo_path
+        stmt = select(User.id).where(User.username == user_data['username'])
+        user_exists = db.session.execute(stmt).first() is not None
+        
+        if not user_exists:
             user = User(
                 username=user_data['username'],
                 email=user_data['email'],

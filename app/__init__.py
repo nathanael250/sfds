@@ -10,9 +10,13 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from app.utils import register_filters
 import pdfkit
+from flask_session import Session
+from flask_mail import Mail
 
 migrate = Migrate()
 moment = Moment()
+session = Session()
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -28,10 +32,13 @@ def create_app(config_class=Config):
     os.makedirs(upload_folder, exist_ok=True)
 
     # Configure session
+    app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem for session storage
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60)
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')
+    os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
 
     # Initialize Flask extensions
     db.init_app(app)
@@ -42,6 +49,8 @@ def create_app(config_class=Config):
     login_manager.login_message_category = 'info'
     login_manager.session_protection = 'strong'
     moment.init_app(app)
+    session.init_app(app)  # Initialize Flask-Session
+    mail.init_app(app)  # Initialize Flask-Mail
 
     # Register custom filters
     register_filters(app)
@@ -91,8 +100,9 @@ def create_app(config_class=Config):
         # Import models after db is created
         from app.models import User
         
-        # Create test users in development mode
-        if app.debug:
+        # Create test users in development mode, but skip during migrations
+        import sys
+        if app.debug and not any('flask db' in arg for arg in sys.argv):
             from app.utils import create_test_users
             create_test_users()
 

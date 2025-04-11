@@ -2,13 +2,18 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
+import jwt
+from time import time
+from flask import current_app
+from sqlalchemy import select
 
 # Initialize extensions
 login_manager.login_view = 'auth.login'
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    stmt = select(User).where(User.id == int(id))
+    return db.session.execute(stmt).scalar_one_or_none()
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +21,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(20), nullable=False)  # 'md', 'sao', or 'agrodealer'
+    logo_path = db.Column(db.String(255))  # Path to store the logo
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
@@ -23,6 +29,21 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_reset_password_token(self, expires_in=600):
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': time() + expires_in},
+            current_app.config['SECRET_KEY'], algorithm='HS256'
+        )
+
+    @staticmethod
+    def verify_reset_password_token(token):
+        try:
+            id = jwt.decode(token, current_app.config['SECRET_KEY'],
+                          algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return User.query.get(id)
 
     @staticmethod
     def set_password(password):

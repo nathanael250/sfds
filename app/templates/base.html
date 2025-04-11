@@ -23,6 +23,10 @@
                             <i class="fas fa-chart-line w-6"></i>
                             <span>Dashboard</span>
                         </a>
+                        <a href="{{ url_for('agrodealer.upload_logo') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                            <i class="fas fa-image w-6"></i>
+                            <span>Upload Logo</span>
+                        </a>
                         <a href="{{ url_for('agrodealer.request_stock') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
                             <i class="fas fa-shopping-cart w-6"></i>
                             <span>Request Purchase</span>
@@ -210,28 +214,17 @@
                                     </div>
                                 </div>
                                 
-                                <!-- User Switcher (Development Only) -->
-                                {% if config.DEBUG %}
-                                <div class="relative">
-                                    <button id="userSwitcherBtn" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
-                                        <i class="fas fa-exchange-alt text-xl"></i>
-                                        <span>Switch User</span>
-                                    </button>
-                                    <div id="userSwitcherMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                                        <a href="{{ url_for('auth.switch_user', username='admin') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Switch to Admin</a>
-                                        <a href="{{ url_for('auth.switch_user', username='md') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Switch to MD</a>
-                                        <a href="{{ url_for('auth.switch_user', username='sao') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Switch to SAO</a>
-                                        <a href="{{ url_for('auth.switch_user', username='agrodealer') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Switch to Agrodealer</a>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                
                                 <div class="relative">
                                     <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
                                         <i class="fas fa-user-circle text-xl"></i>
                                         <span>{{ current_user.username }}</span>
                                     </button>
                                 </div>
+                                {% if current_user.role == 'agrodealer' %}
+                                <a href="{{ url_for('agrodealer.upload_logo') }}" class="text-gray-700 hover:text-gray-900" title="Upload Logo">
+                                    <i class="fas fa-image text-xl"></i>
+                                </a>
+                                {% endif %}
                                 <a href="{{ url_for('auth.logout') }}" class="text-gray-700 hover:text-gray-900">
                                     <i class="fas fa-sign-out-alt text-xl"></i>
                                 </a>
@@ -287,23 +280,6 @@
         window.addEventListener('load', checkScreenSize);
         window.addEventListener('resize', checkScreenSize);
         
-        // User switcher toggle
-        const userSwitcherBtn = document.getElementById('userSwitcherBtn');
-        const userSwitcherMenu = document.getElementById('userSwitcherMenu');
-        
-        if (userSwitcherBtn && userSwitcherMenu) {
-            userSwitcherBtn.addEventListener('click', function() {
-                userSwitcherMenu.classList.toggle('hidden');
-            });
-            
-            // Close menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!userSwitcherBtn.contains(event.target) && !userSwitcherMenu.contains(event.target)) {
-                    userSwitcherMenu.classList.add('hidden');
-                }
-            });
-        }
-
         // Notification dropdown toggle
         const notificationBtn = document.getElementById('notificationBtn');
         const notificationDropdown = document.getElementById('notificationDropdown');

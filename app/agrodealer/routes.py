@@ -17,7 +17,41 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import pandas as pd
 from io import BytesIO
-import pdfkit
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+
+# Configure pdfkit with the path to wkhtmltopdf
+def get_wkhtmltopdf_path():
+    """Get the path to wkhtmltopdf executable."""
+    # Try different possible installation paths
+    possible_paths = [
+        r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe',
+        r'C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe',
+        r'C:\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    return None
+
+# Get the path to wkhtmltopdf
+wkhtmltopdf_path = get_wkhtmltopdf_path()
+
+if wkhtmltopdf_path:
+    try:
+        config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+        print(f"Successfully configured wkhtmltopdf at: {wkhtmltopdf_path}")
+    except Exception as e:
+        print(f"Error configuring wkhtmltopdf: {str(e)}")
+        config = None
+else:
+    print("wkhtmltopdf not found. Please install it from https://wkhtmltopdf.org/downloads.html")
+    config = None
 
 
 @bp.route("/dashboard")
@@ -735,85 +769,143 @@ def reports():
 @login_required
 @requires_roles("agrodealer")
 def generate_report():
-    """Generate and export reports in different formats."""
-    export_format = request.args.get("export_format", "web")
-    date_preset = request.args.get("date_preset", "custom")
+    """Generate and download transaction report in PDF or Excel format."""
+    # Get filter parameters
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
-    product_type = request.args.get("product_type", "all")
-    
-    # Calculate date range based on preset
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    if date_preset != "custom":
-        if date_preset == "today":
-            start_date = today
-            end_date = datetime.now()
-        elif date_preset == "yesterday":
-            start_date = today - timedelta(days=1)
-            end_date = today - timedelta(seconds=1)
-        elif date_preset == "this_week":
-            start_date = today - timedelta(days=today.weekday())
-            end_date = datetime.now()
-        elif date_preset == "last_week":
-            start_date = today - timedelta(days=today.weekday() + 7)
-            end_date = start_date + timedelta(days=7) - timedelta(seconds=1)
-        elif date_preset == "this_month":
-            start_date = today.replace(day=1)
-            end_date = datetime.now()
-        elif date_preset == "last_month":
-            last_month = today.replace(day=1) - timedelta(days=1)
-            start_date = last_month.replace(day=1)
-            end_date = today.replace(day=1) - timedelta(seconds=1)
-        elif date_preset == "this_year":
-            start_date = today.replace(month=1, day=1)
-            end_date = datetime.now()
-    else:
-        try:
-            if start_date:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            if end_date:
-                end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
-        except ValueError:
-            flash("Invalid date format. Please use YYYY-MM-DD format.", "error")
-            return redirect(url_for("agrodealer.transactions"))
-    
-    # Build query with filters
+    product_type = request.args.get("product_type")
+    export_format = request.args.get("format", "pdf")
+
+    # Convert string dates to datetime objects
+    if start_date:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    if end_date:
+        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+
+    # Build query
     query = Transaction.query.filter_by(sold_by=current_user.id)
+
     if start_date:
         query = query.filter(Transaction.created_at >= start_date)
     if end_date:
         query = query.filter(Transaction.created_at <= end_date)
-    
-    # Apply product type filter
-    if product_type != "all":
+    if product_type:
         query = query.join(Product).filter(Product.type == product_type)
-    
-    # Get transactions
-    transactions = query.order_by(Transaction.created_at.desc()).all()
-    
+
+    # Execute query
+    transactions = query.all()
+
     if export_format == "pdf":
-        # Create PDF using the transactions template
-        html = render_template(
-            "agrodealer/reports/pdf_template.html",
-            transactions=transactions,
-            start_date=start_date,
-            end_date=end_date,
-            product_type=product_type
-        )
-        
-        pdf = pdfkit.from_string(html, False)
-        
-        # Create response
-        stream = BytesIO(pdf)
-        filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        
-        return send_file(
-            stream,
-            download_name=filename,
-            as_attachment=True,
-            mimetype='application/pdf'
-        )
-        
+        try:
+            # Create PDF buffer
+            buffer = BytesIO()
+            
+            # Create PDF document
+            doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+            
+            # Create styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceAfter=30
+            )
+            
+            # Create elements
+            elements = []
+            
+            # Add logos
+            logo_table_data = []
+            logo_row = []
+            
+            # Add agrodealer logo if exists
+            if current_user.logo_path:
+                agrodealer_logo_path = os.path.join(current_app.root_path, 'static', current_user.logo_path)
+                if os.path.exists(agrodealer_logo_path):
+                    logo_row.append(Image(agrodealer_logo_path, width=100, height=50))
+                else:
+                    logo_row.append(Paragraph("", styles['Normal']))
+            else:
+                logo_row.append(Paragraph("", styles['Normal']))
+            
+            # Add system logo
+            system_logo_path = os.path.join(current_app.root_path, 'static', 'img', 'system_logo.png')
+            if os.path.exists(system_logo_path):
+                logo_row.append(Image(system_logo_path, width=100, height=50))
+            else:
+                logo_row.append(Paragraph("", styles['Normal']))
+            
+            logo_table_data.append(logo_row)
+            logo_table = Table(logo_table_data, colWidths=[doc.width/2, doc.width/2])
+            logo_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            elements.append(logo_table)
+            elements.append(Spacer(1, 20))
+            
+            # Add title
+            title = Paragraph("Transaction Report", title_style)
+            elements.append(title)
+            
+            # Add date range
+            date_text = f"Date Range: {start_date.strftime('%Y-%m-%d') if start_date else 'Start'} to {end_date.strftime('%Y-%m-%d') if end_date else 'End'}"
+            elements.append(Paragraph(date_text, styles['Normal']))
+            elements.append(Spacer(1, 20))
+            
+            # Create table data
+            table_data = [['Date', 'Product', 'Quantity', 'Total Amount', 'Citizen']]
+            
+            for transaction in transactions:
+                table_data.append([
+                    transaction.created_at.strftime('%Y-%m-%d %H:%M'),
+                    transaction.product.name,
+                    f"{transaction.quantity} {transaction.product.unit}",
+                    f"RWF {transaction.total_amount:,.2f}",
+                    transaction.citizen.name
+                ])
+            
+            # Create table
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            elements.append(table)
+            
+            # Build PDF
+            doc.build(elements)
+            
+            # Get PDF data
+            pdf = buffer.getvalue()
+            buffer.close()
+            
+            # Create response
+            filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            
+            return send_file(
+                BytesIO(pdf),
+                download_name=filename,
+                as_attachment=True,
+                mimetype='application/pdf'
+            )
+        except Exception as e:
+            flash(f"Error generating PDF: {str(e)}", "error")
+            return redirect(url_for("agrodealer.transactions"))
+
     elif export_format == "excel":
         # Create Excel file
         data = []
@@ -901,3 +993,53 @@ def generate_report():
     
     # If no export format specified or invalid format, redirect back to transactions page
     return redirect(url_for('agrodealer.transactions', **request.args))
+
+
+@bp.route("/upload_logo", methods=["GET", "POST"])
+@login_required
+@requires_roles("agrodealer")
+def upload_logo():
+    """Upload or update agrodealer's logo."""
+    if request.method == "POST":
+        if 'logo' not in request.files:
+            flash('No file selected', 'error')
+            return redirect(request.url)
+            
+        file = request.files['logo']
+        if file.filename == '':
+            flash('No file selected', 'error')
+            return redirect(request.url)
+            
+        if file and allowed_file(file.filename):
+            try:
+                # Create uploads directory if it doesn't exist
+                upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'logos')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                # Generate unique filename
+                filename = secure_filename(f"logo_{current_user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}{os.path.splitext(file.filename)[1]}")
+                filepath = os.path.join(upload_dir, filename)
+                
+                # Save the file
+                file.save(filepath)
+                
+                # Update user's logo path
+                current_user.logo_path = os.path.join('uploads', 'logos', filename)
+                db.session.commit()
+                
+                flash('Logo uploaded successfully', 'success')
+                return redirect(url_for('agrodealer.dashboard'))
+                
+            except Exception as e:
+                flash(f'Error uploading logo: {str(e)}', 'error')
+                return redirect(request.url)
+        else:
+            flash('Invalid file type. Allowed types: PNG, JPG, JPEG', 'error')
+            return redirect(request.url)
+            
+    return render_template('agrodealer/upload_logo.html')
+
+def allowed_file(filename):
+    """Check if the file extension is allowed."""
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
