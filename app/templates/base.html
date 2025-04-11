@@ -52,11 +52,11 @@
                             <span>Transactions Report</span>
                         </a>
                     {% elif current_user.role == 'sao' %}
-                        <a href="{{ url_for('main.index') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                        <a href="{{ url_for('sao.dashboard') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
                             <i class="fas fa-home w-6"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="{{ url_for('citizens.index') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                        <a href="{{ url_for('sao.view_citizens') }}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
                             <i class="fas fa-users w-6"></i>
                             <span>Citizens</span>
                         </a>

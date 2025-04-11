@@ -1,6 +1,6 @@
 from flask import render_template, request, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
-from app.models import StockRequest, Product, db, Notification
+from app.models import StockRequest, Product, db, Notification, Citizen
 from app.utils import requires_roles
 from app.sao import bp
 import os
@@ -96,4 +96,12 @@ def dashboard():
     return render_template('sao/dashboard.html',
                          pending_requests=pending_requests,
                          approved_requests=approved_requests,
-                         total_products=total_products) 
+                         total_products=total_products)
+
+@bp.route('/citizens')
+@login_required
+@requires_roles('sao')
+def view_citizens():
+    """View all registered citizens."""
+    citizens = Citizen.query.all()
+    return render_template('sao/citizens.html', citizens=citizens) 

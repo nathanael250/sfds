@@ -37,9 +37,8 @@ def index():
         return render_template('md_dashboard.html', stats=stats)
         
     elif current_user.role == 'sao':
-        # Get pending requests for SAO
-        pending_requests = StockRequest.query.filter_by(status='pending').all()
-        return render_template('sao_dashboard.html', requests=pending_requests)
+        # Redirect to the dedicated SAO dashboard
+        return redirect(url_for('sao.dashboard'))
         
     elif current_user.role == 'agrodealer':
         # Get agrodealer's requests and recent transactions
