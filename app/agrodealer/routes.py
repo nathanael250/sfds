@@ -10,7 +10,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from app.agrodealer import bp
-from app.models import StockRequest, Product, Citizen, db, Notification, Transaction, Stock
+from app.models import StockRequest, Product, Citizen, db, Notification, Transaction, Stock, StockMovement
 from app.utils import requires_roles
 import os
 from datetime import datetime, timedelta
@@ -654,6 +654,53 @@ def transactions():
     # Get transactions
     transactions = query.order_by(Transaction.created_at.desc()).all()
     
+    # Calculate summary statistics
+    total_sales = sum(t.total_amount for t in transactions)
+    total_transactions = len(transactions)
+    average_sale = total_sales / total_transactions if total_transactions > 0 else 0
+    today_sales = sum(t.total_amount for t in transactions if t.created_at.date() == today.date())
+
+    # Get stock movements
+    stock_query = StockMovement.query.filter_by(agrodealer_id=current_user.id)
+    if start_date:
+        stock_query = stock_query.filter(StockMovement.created_at >= start_date)
+    if end_date:
+        stock_query = stock_query.filter(StockMovement.created_at <= end_date)
+    if product_type != "all":
+        stock_query = stock_query.join(Product).filter(Product.type == product_type)
+
+    # Get inbound and outbound stock
+    inbound_stock = stock_query.filter_by(movement_type='in').order_by(StockMovement.created_at.desc()).all()
+    outbound_stock = stock_query.filter_by(movement_type='out').order_by(StockMovement.created_at.desc()).all()
+
+    # Prepare chart data
+    stock_dates = []
+    inbound_quantities = []
+    outbound_quantities = []
+
+    # Get date range for chart
+    if start_date and end_date:
+        current_date = start_date
+        while current_date <= end_date:
+            date_str = current_date.strftime('%Y-%m-%d')
+            stock_dates.append(date_str)
+            
+            # Sum inbound quantities for this date
+            inbound_sum = sum(
+                sm.quantity for sm in inbound_stock 
+                if sm.created_at.date() == current_date.date()
+            )
+            inbound_quantities.append(inbound_sum)
+            
+            # Sum outbound quantities for this date
+            outbound_sum = sum(
+                sm.quantity for sm in outbound_stock 
+                if sm.created_at.date() == current_date.date()
+            )
+            outbound_quantities.append(outbound_sum)
+            
+            current_date += timedelta(days=1)
+    
     # Group data if requested
     grouped_data = None
     if group_by != "none" and transactions:
@@ -688,7 +735,16 @@ def transactions():
         start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
         end_date=end_date.strftime('%Y-%m-%d') if end_date else '',
         product_type=product_type,
-        group_by=group_by
+        group_by=group_by,
+        total_sales=total_sales,
+        total_transactions=total_transactions,
+        average_sale=average_sale,
+        today_sales=today_sales,
+        inbound_stock=inbound_stock,
+        outbound_stock=outbound_stock,
+        stock_dates=stock_dates if stock_dates else [],
+        inbound_quantities=inbound_quantities if inbound_quantities else [],
+        outbound_quantities=outbound_quantities if outbound_quantities else []
     )
 
 

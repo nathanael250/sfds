@@ -12,241 +12,299 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <form method="GET" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Date Range -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-                    <select name="date_preset" id="datePreset" class="form-select block w-full rounded-md border-gray-300 mb-2">
-                        <option value="custom">Custom Range</option>
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="this_week">This Week</option>
-                        <option value="last_week">Last Week</option>
-                        <option value="this_month">This Month</option>
-                        <option value="last_month">Last Month</option>
-                        <option value="this_year">This Year</option>
-                    </select>
-                    <div id="customDateRange" class="space-y-2">
-                        <input type="date" name="start_date" class="form-input block w-full rounded-md border-gray-300">
-                        <input type="date" name="end_date" class="form-input block w-full rounded-md border-gray-300">
-                    </div>
-                </div>
-
-                <!-- Product Type -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
-                    <select name="product_type" class="form-select block w-full rounded-md border-gray-300">
-                        <option value="all">All Types</option>
-                        <option value="seed">Seeds Only</option>
-                        <option value="fertilizer">Fertilizers Only</option>
-                    </select>
-                </div>
-
-                <!-- Group By -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Group By</label>
-                    <select name="group_by" class="form-select block w-full rounded-md border-gray-300">
-                        <option value="none">No Grouping</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="product">By Product</option>
-                    </select>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option>Custom Range</option>
+                    <option>Today</option>
+                    <option>Last 7 Days</option>
+                    <option>This Month</option>
+                    <option>Last Month</option>
+                </select>
+                <div class="mt-2 space-y-2">
+                    <input type="date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
-
-            <!-- Export and Filter Buttons -->
-            <div class="flex justify-between items-center">
-                <div class="flex space-x-4">
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
-                        Apply Filters
-                    </button>
-                    <button type="reset" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Reset
-                    </button>
-                </div>
-                <div class="flex space-x-4">
-                    <a href="{{ url_for('agrodealer.generate_report', export_format='pdf', **request.args) }}" 
-                       class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
-                        Export PDF
-                    </a>
-                    <a href="{{ url_for('agrodealer.generate_report', export_format='excel', **request.args) }}"
-                       class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">
-                        Export Excel
-                    </a>
-                    <a href="{{ url_for('agrodealer.generate_report', export_format='csv', **request.args) }}"
-                       class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                        Export CSV
-                    </a>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Product Type</label>
+                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option>All Types</option>
+                    <option>Seeds</option>
+                    <option>Fertilizer</option>
+                </select>
             </div>
-        </form>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Group By</label>
+                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option>No Grouping</option>
+                    <option>Product</option>
+                    <option>Type</option>
+                    <option>Date</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-between">
+            <div>
+                <button type="button" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                    Apply Filters
+                </button>
+                <button type="button" class="ml-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200">
+                    Reset
+                </button>
+            </div>
+            <div class="space-x-2">
+                <button type="button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                    Export PDF
+                </button>
+                <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Export Excel
+                </button>
+                <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Export CSV
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Summary Statistics -->
+    <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Sales</h3>
-            <p class="text-3xl font-bold text-indigo-600">
-                RWF {{ (transactions|sum(attribute='total_amount'))|currency }}
-            </p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ total_sales|default(0) }}</p>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Transactions</h3>
-            <p class="text-3xl font-bold text-indigo-600">{{ transactions|length }}</p>
+            <p class="text-3xl font-bold text-indigo-600">{{ total_transactions|default(0) }}</p>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Average Sale</h3>
-            <p class="text-3xl font-bold text-indigo-600">
-                RWF {{ ((transactions|sum(attribute='total_amount') / transactions|length) if transactions|length > 0 else 0)|currency }}
-            </p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ average_sale|default(0) }}</p>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Today's Sales</h3>
-            <p class="text-3xl font-bold text-indigo-600">
-                RWF {{ (transactions|selectattr("created_at", "ge", today)|sum(attribute='total_amount'))|currency }}
-            </p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ today_sales|default(0) }}</p>
         </div>
     </div>
 
-    <!-- Grouped Data (if grouping is selected) -->
-    {% if grouped_data %}
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800">Grouped Summary</h2>
+    <!-- Main Content Tabs -->
+    <div class="bg-white rounded-lg shadow-md">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex" aria-label="Tabs">
+                <button onclick="showTab('transactions')" class="tab-btn active-tab w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    Transaction History
+                </button>
+                <button onclick="showTab('inbound')" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    Inbound Stock
+                </button>
+                <button onclick="showTab('outbound')" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    Outbound Stock
+                </button>
+            </nav>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Quantity</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transactions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for group, data in grouped_data.items() %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ group }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">RWF {{ data.total_amount|currency }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.total_quantity|number }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.transactions }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- Transaction History -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800">Transaction History</h2>
+        <!-- Transaction History Tab -->
+        <div id="transactions-tab" class="tab-content p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ transaction.unit_price }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ transaction.total_amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for transaction in transactions %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ transaction.product.name }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ transaction.product.id }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if transaction.product.type == 'seed' %}
-                                    bg-green-100 text-green-800
-                                {% else %}
-                                    bg-blue-100 text-blue-800
-                                {% endif %}">
-                                {{ transaction.product.type|title }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ transaction.citizen.name }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ transaction.citizen.national_id }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ transaction.quantity|number }} {{ transaction.product.unit }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            RWF {{ transaction.product.price_per_unit|currency }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            RWF {{ transaction.total_amount|currency }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+        <!-- Inbound Stock Tab -->
+        <div id="inbound-tab" class="tab-content hidden p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stock in inbound_stock %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.unit_price }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.total_value }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.supplier }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Outbound Stock Tab -->
+        <div id="outbound-tab" class="tab-content hidden p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stock in outbound_stock %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.unit_price }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.total_value }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.recipient }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stock Movement Chart -->
+        <div class="p-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold mb-4">Stock Movement Trends</h3>
+            <div class="bg-white p-4 rounded-lg shadow" style="height: 400px;">
+                <canvas id="stockMovementChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Date Range Preset Script -->
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- JavaScript for Tabs and Chart -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const datePreset = document.getElementById('datePreset');
-    const customDateRange = document.getElementById('customDateRange');
-    
-    function updateDateRange() {
-        customDateRange.style.display = datePreset.value === 'custom' ? 'block' : 'none';
+    // Tab Functionality
+    function showTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
         
-        if (datePreset.value !== 'custom') {
-            const today = new Date();
-            let startDate = new Date();
-            let endDate = new Date();
-            
-            switch(datePreset.value) {
-                case 'today':
-                    break;
-                case 'yesterday':
-                    startDate.setDate(today.getDate() - 1);
-                    endDate = startDate;
-                    break;
-                case 'this_week':
-                    startDate.setDate(today.getDate() - today.getDay());
-                    break;
-                case 'last_week':
-                    startDate.setDate(today.getDate() - today.getDay() - 7);
-                    endDate.setDate(today.getDate() - today.getDay() - 1);
-                    break;
-                case 'this_month':
-                    startDate.setDate(1);
-                    break;
-                case 'last_month':
-                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                    break;
-                case 'this_year':
-                    startDate = new Date(today.getFullYear(), 0, 1);
-                    break;
-            }
-            
-            document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
-            document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
-        }
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        });
+        
+        // Show selected tab content
+        document.getElementById(tabName + '-tab').classList.remove('hidden');
+        
+        // Add active class to selected tab
+        event.currentTarget.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
+        event.currentTarget.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
     }
-    
-    datePreset.addEventListener('change', updateDateRange);
-    updateDateRange(); // Initial setup
-});
+
+    // Initialize Chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('stockMovementChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ stock_dates|tojson|default('[]')|safe }},
+                datasets: [{
+                    label: 'Inbound Stock',
+                    data: {{ inbound_quantities|tojson|default('[]')|safe }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Outbound Stock',
+                    data: {{ outbound_quantities|tojson|default('[]')|safe }},
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Stock Movement Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                }
+            }
+        });
+    });
 </script>
+
+<style>
+    .active-tab {
+        border-bottom-color: #4F46E5;
+        color: #4F46E5;
+    }
+    .tab-btn {
+        border-transparent: 2px;
+        transition: all 0.3s;
+    }
+    .tab-btn:hover {
+        border-bottom-color: #E5E7EB;
+        color: #374151;
+    }
+</style>
 {% endblock %} 

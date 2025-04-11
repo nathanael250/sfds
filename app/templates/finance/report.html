@@ -3,117 +3,484 @@
 {% block title %}Financial Report{% endblock %}
 
 {% block content %}
-<div class="space-y-6 px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-        <h2 class="text-2xl font-semibold text-gray-800">Financial Report</h2>
-        <div class="w-full sm:w-auto">
-            <a href="{{ url_for('finance.export_report') }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <i class="fas fa-download mr-2"></i> Export to Excel
-            </a>
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Financial Report</h1>
+        <p class="text-gray-600">Comprehensive financial and stock analysis</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Filters</h2>
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                <input type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">End Date</label>
+                <input type="date" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Product Type</label>
+                <select name="product_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All</option>
+                    <option value="seed" {% if filters.product_type == 'seed' %}selected{% endif %}>Seeds</option>
+                    <option value="fertilizer" {% if filters.product_type == 'fertilizer' %}selected{% endif %}>Fertilizer</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All</option>
+                    <option value="completed" {% if filters.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="md:col-span-4">
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                    Apply Filters
+                </button>
+                <a href="{{ url_for('finance.export_report', type='financial', **request.args) }}" 
+                   class="ml-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Export Financial Report
+                </a>
+                <a href="{{ url_for('finance.export_report', type='stock', **request.args) }}" 
+                   class="ml-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Export Stock Report
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
+            <p class="text-3xl font-bold text-indigo-600">KSh {{ "%.2f"|format(total_revenue) }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Expenses</h3>
+            <p class="text-3xl font-bold text-red-600">KSh {{ "%.2f"|format(total_expenses) }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Net Profit</h3>
+            <p class="text-3xl font-bold text-green-600">KSh {{ "%.2f"|format(total_revenue - total_expenses) }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
-            <div class="bg-blue-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-blue-800">Total Revenue</h3>
-                <p class="mt-2 text-2xl sm:text-3xl font-semibold text-blue-900">RWF {{ "{:,.0f}".format(total_revenue|default(0)) }}</p>
-            </div>
-            <div class="bg-green-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-green-800">Total Expenses</h3>
-                <p class="mt-2 text-2xl sm:text-3xl font-semibold text-green-900">RWF {{ "{:,.0f}".format(total_expenses|default(0)) }}</p>
-            </div>
-            <div class="bg-purple-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-purple-800">Net Profit</h3>
-                <p class="mt-2 text-2xl sm:text-3xl font-semibold text-purple-900">RWF {{ "{:,.0f}".format(net_profit|default(0)) }}</p>
+    <!-- Income Breakdown -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Income Breakdown</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for category, data in income_breakdown.items() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ category }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.amount) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ "%.1f"|format((data.amount/total_revenue)*100 if total_revenue > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Expense Breakdown -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Expense Breakdown</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for category, data in expense_breakdown.items() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ category }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.amount) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ "%.1f"|format((data.amount/total_expenses)*100 if total_expenses > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Profit by Product -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Profit by Product</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margin</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product, data in product_profits.items() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ product }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.revenue) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.cost) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.profit) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ "%.1f"|format((data.profit/data.revenue)*100 if data.revenue > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stock Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Stock Value</h3>
+            <p class="text-3xl font-bold text-green-600">KSh {{ "%.2f"|format(stock_metrics.total_value) }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Stock Quantity</h3>
+            <p class="text-3xl font-bold text-green-600">{{ stock_metrics.total_quantity }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Average Stock Value</h3>
+            <p class="text-3xl font-bold text-green-600">KSh {{ "%.2f"|format(stock_metrics.total_value/stock_metrics.total_quantity if stock_metrics.total_quantity > 0 else 0) }}</p>
+        </div>
+    </div>
+
+    <!-- Product Sales -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Product Sales</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product, data in product_sales.items() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ product }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ data.type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ data.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(data.revenue) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Current Stock -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Current Stock</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for stock in current_stock %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.unit_price) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.quantity * stock.unit_price) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stock Movements -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Stock Movements</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for movement in stock_movements %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movement.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movement.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movement.product.type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movement.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if movement.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif movement.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ movement.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movement.requested_by }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(transaction.unit_price) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(transaction.total_amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stock History Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Stock History</h2>
+        
+        <!-- Stock Movement Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex" aria-label="Tabs">
+                    <button onclick="showTab('inbound')" class="tab-btn active-tab w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                        Inbound Stock
+                    </button>
+                    <button onclick="showTab('outbound')" class="tab-btn w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                        Outbound Stock
+                    </button>
+                </nav>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Revenue Breakdown</h3>
-                <div class="overflow-x-auto -mx-4 sm:-mx-6">
-                    <div class="inline-block min-w-full align-middle">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Sold</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for item in revenue_breakdown %}
-                                <tr>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.product_name }}</td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.quantity }}</td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">RWF {{ "{:,.0f}".format(item.revenue) }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Inbound Stock Table -->
+        <div id="inbound-tab" class="tab-content">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stock in inbound_stock %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.created_at.strftime('%Y-%m-%-d') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.unit_price) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.quantity * stock.unit_price) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.supplier }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Expense Breakdown</h3>
-                <div class="overflow-x-auto -mx-4 sm:-mx-6">
-                    <div class="inline-block min-w-full align-middle">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for item in expense_breakdown %}
-                                <tr>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.category }}</td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">RWF {{ "{:,.0f}".format(item.amount) }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Outbound Stock Table -->
+        <div id="outbound-tab" class="tab-content hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stock in outbound_stock %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.created_at.strftime('%Y-%m-%-d') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.unit_price) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">KSh {{ "%.2f"|format(stock.quantity * stock.unit_price) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.recipient }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Transactions</h3>
-                <div class="overflow-x-auto -mx-4 sm:-mx-6">
-                    <div class="inline-block min-w-full align-middle">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for transaction in recent_transactions %}
-                                <tr>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            {% if transaction.type == 'revenue' %}bg-green-100 text-green-800
-                                            {% else %}bg-red-100 text-red-800{% endif %}">
-                                            {{ transaction.type|title }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.description }}</td>
-                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">RWF {{ "{:,.0f}".format(transaction.amount) }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Stock Movement Chart -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold mb-4">Stock Movement Trends</h3>
+            <div class="bg-white p-4 rounded-lg shadow" style="height: 400px;">
+                <canvas id="stockMovementChart"></canvas>
             </div>
         </div>
     </div>
+
+    <!-- Add Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- JavaScript for Tabs and Chart -->
+    <script>
+        // Tab Functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600');
+                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Add active class to selected tab
+            event.currentTarget.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
+            event.currentTarget.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        }
+
+        // Initialize Chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('stockMovementChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {{ stock_dates|tojson }},
+                    datasets: [{
+                        label: 'Inbound Stock',
+                        data: {{ inbound_quantities|tojson }},
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Outbound Stock',
+                        data: {{ outbound_quantities|tojson }},
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Stock Movement Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantity'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .active-tab {
+            border-bottom-color: #4F46E5;
+            color: #4F46E5;
+        }
+        .tab-btn {
+            border-transparent: 2px;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            border-bottom-color: #E5E7EB;
+            color: #374151;
+        }
+    </style>
 </div>
 {% endblock %} 
