@@ -267,46 +267,24 @@ def citizens():
 def register_citizen():
     """Register a new citizen."""
     if request.method == 'POST':
-        # Get form data
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        national_id = request.form.get('id_number')
-        phone = request.form.get('phone')
-        farm_size = request.form.get('farm_size')
-        
-        # Validate required fields
-        if not all([first_name, last_name, national_id, phone, farm_size]):
-            flash('All fields are required', 'error')
-            return redirect(url_for('md.register_citizen'))
-        
-        # Check if citizen already exists
-        existing_citizen = Citizen.query.filter_by(national_id=national_id).first()
-        if existing_citizen:
-            flash('A citizen with this National ID already exists', 'error')
-            return redirect(url_for('md.register_citizen'))
-        
         try:
-            # Generate a unique UPI number (you may want to implement your own logic)
-            upi_number = f"UPI{national_id}"
+            # Combine first and last name
+            name = f"{request.form['first_name']} {request.form['last_name']}"
             
-            new_citizen = Citizen(
-                name=f"{first_name} {last_name}",
-                national_id=national_id,
-                phone_number=phone,
-                plot_size=float(farm_size),
-                upi_number=upi_number,
-                allowed_seeds=0.0,  # Default values, can be updated later
-                allowed_fertilizer=0.0,  # Default values, can be updated later
-                registered_by=current_user.id
+            citizen = Citizen(
+                name=name,
+                national_id=request.form['id_number'],
+                upi_number=request.form['upi_number'],
+                phone_number=request.form['phone'],
+                plot_size=float(request.form['farm_size'])
             )
-            db.session.add(new_citizen)
+            db.session.add(citizen)
             db.session.commit()
             flash('Citizen registered successfully', 'success')
             return redirect(url_for('md.citizens'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error registering citizen: {str(e)}', 'error')
-            return redirect(url_for('md.register_citizen'))
     
     return render_template('md/citizens/register.html')
 

@@ -19,7 +19,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(255), nullable=False)  # Increased length to 255
     role = db.Column(db.String(20), nullable=False)  # 'md', 'sao', or 'agrodealer'
     logo_path = db.Column(db.String(255))  # Path to store the logo
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -56,13 +56,10 @@ class Citizen(db.Model):
     upi_number = db.Column(db.String(20), unique=True, nullable=False)
     phone_number = db.Column(db.String(20), nullable=False)
     plot_size = db.Column(db.Float, nullable=False)
-    allowed_seeds = db.Column(db.Float, nullable=False)
-    allowed_fertilizer = db.Column(db.Float, nullable=False)
-    registered_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    registrar = db.relationship('User', backref=db.backref('registered_citizens', lazy=True))
+    transactions = db.relationship('Transaction', back_populates='citizen', lazy=True)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -143,7 +140,7 @@ class Transaction(db.Model):
 
     # Relationships
     product = db.relationship('Product', backref=db.backref('transactions', lazy=True))
-    citizen = db.relationship('Citizen', backref=db.backref('transactions', lazy=True))
+    citizen = db.relationship('Citizen', back_populates='transactions')
     seller = db.relationship('User', backref=db.backref('sales', lazy=True))
 
 class Notification(db.Model):

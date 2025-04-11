@@ -21,11 +21,9 @@ def register_citizen():
         upi = request.form.get('upi')
         phone = request.form.get('phone')
         plot_size = request.form.get('plot_size')
-        allowed_seeds = request.form.get('allowed_seeds')
-        allowed_fertilizer = request.form.get('allowed_fertilizer')
 
         # Validate inputs
-        if not all([name, national_id, upi, phone, plot_size, allowed_seeds, allowed_fertilizer]):
+        if not all([name, national_id, upi, phone, plot_size]):
             flash('All fields are required', 'error')
             return redirect(url_for('citizens.register_citizen'))
 
@@ -41,10 +39,7 @@ def register_citizen():
                 national_id=national_id,
                 upi_number=upi,
                 phone_number=phone,
-                plot_size=float(plot_size),
-                allowed_seeds=float(allowed_seeds),
-                allowed_fertilizer=float(allowed_fertilizer),
-                registered_by=current_user.id
+                plot_size=float(plot_size)
             )
             db.session.add(new_citizen)
             db.session.commit()
@@ -61,5 +56,5 @@ def register_citizen():
 @login_required
 @requires_roles('agrodealer')
 def view_citizens():
-    citizens = Citizen.query.filter_by(registered_by=current_user.id).all()
+    citizens = Citizen.query.all()
     return render_template('citizens/view.html', citizens=citizens) 

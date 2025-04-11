@@ -21,8 +21,8 @@
                 <h1 class="text-2xl font-bold text-gray-800">Register New Citizen</h1>
                 <p class="text-gray-600 mt-1">Add a new citizen to the Seeds and Fertilizers Distribution System.</p>
             </div>
-            <a href="{{ url_for('md.citizens') }}" 
-               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200">
+            <a href="{{ url_for('md.citizens') }}"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Citizens</span>
             </a>
@@ -60,8 +60,8 @@
                                 <i class="fas fa-user text-gray-400"></i>
                             </div>
                             <input type="text" name="first_name" id="first_name" required
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="Enter first name">
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter first name">
                         </div>
                     </div>
                     <div class="form-group">
@@ -71,8 +71,8 @@
                                 <i class="fas fa-user text-gray-400"></i>
                             </div>
                             <input type="text" name="last_name" id="last_name" required
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="Enter last name">
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter last name">
                         </div>
                     </div>
                 </div>
@@ -86,17 +86,30 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="form-group">
-                        <label for="id_number" class="block text-sm font-medium text-gray-700 mb-1">National ID Number</label>
+                        <label for="id_number" class="block text-sm font-medium text-gray-700 mb-1">National ID
+                            Number</label>
                         <div class="relative form-input-group rounded-md shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-id-card text-gray-400"></i>
                             </div>
                             <input type="text" name="id_number" id="id_number" required
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   pattern="[0-9]+" placeholder="Enter ID number"
-                                   title="Please enter a valid ID number (numbers only)">
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                pattern="[0-9]+" placeholder="Enter ID number"
+                                title="Please enter a valid ID number (numbers only)">
                         </div>
                         <p class="mt-1 text-sm text-gray-500">National identification number (numbers only)</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="upi_number" class="block text-sm font-medium text-gray-700 mb-1">UPI Number</label>
+                        <div class="relative form-input-group rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-hashtag text-gray-400"></i>
+                            </div>
+                            <input type="text" name="upi_number" id="upi_number" required
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter UPI number">
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">Unique Personal Identifier number</p>
                     </div>
                 </div>
             </div>
@@ -115,9 +128,9 @@
                                 <i class="fas fa-phone text-gray-400"></i>
                             </div>
                             <input type="tel" name="phone" id="phone" required
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   pattern="[0-9]+" placeholder="Enter phone number"
-                                   title="Please enter a valid phone number (numbers only)">
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                pattern="[0-9]+" placeholder="Enter phone number"
+                                title="Please enter a valid phone number (numbers only)">
                         </div>
                         <p class="mt-1 text-sm text-gray-500">Primary contact number</p>
                     </div>
@@ -132,14 +145,15 @@
                 </div>
                 <div class="grid grid-cols-1 gap-6">
                     <div class="form-group">
-                        <label for="farm_size" class="block text-sm font-medium text-gray-700 mb-1">Farm Size (Acres)</label>
+                        <label for="farm_size" class="block text-sm font-medium text-gray-700 mb-1">Farm Size
+                            (Acres)</label>
                         <div class="relative form-input-group rounded-md shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-ruler text-gray-400"></i>
                             </div>
                             <input type="number" name="farm_size" id="farm_size" required min="0" step="0.1"
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="Enter farm size">
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter farm size">
                         </div>
                         <p class="mt-1 text-sm text-gray-500">Size of farming land in acres</p>
                     </div>
@@ -148,8 +162,8 @@
 
             <!-- Submit Button Section -->
             <div class="flex justify-end pt-6">
-                <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 shadow-sm hover:shadow-md">
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 shadow-sm hover:shadow-md">
                     <i class="fas fa-user-plus"></i>
                     <span>Register Citizen</span>
                 </button>
@@ -161,46 +175,46 @@
 <!-- Form Validation Script -->
 {% block extra_js %}
 <script>
-document.querySelector('form').addEventListener('submit', function(e) {
-    const idNumber = document.getElementById('id_number').value;
-    const phone = document.getElementById('phone').value;
-    const farmSize = document.getElementById('farm_size').value;
-    
-    // Validate ID Number
-    if (!/^\d+$/.test(idNumber)) {
-        e.preventDefault();
-        alert('Please enter a valid ID number (numbers only)');
-        return;
-    }
-    
-    // Validate Phone Numbers
-    if (!/^\d+$/.test(phone)) {
-        e.preventDefault();
-        alert('Please enter a valid phone number (numbers only)');
-        return;
-    }
-    
-    // Validate Farm Size
-    if (farmSize < 0) {
-        e.preventDefault();
-        alert('Farm size cannot be negative');
-        return;
-    }
-});
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const idNumber = document.getElementById('id_number').value;
+        const phone = document.getElementById('phone').value;
+        const farmSize = document.getElementById('farm_size').value;
 
-// Add visual feedback for form inputs
-document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('invalid', function() {
-        this.classList.add('border-red-500');
-    });
-    
-    input.addEventListener('input', function() {
-        if (this.validity.valid) {
-            this.classList.remove('border-red-500');
-            this.classList.add('border-green-500');
+        // Validate ID Number
+        if (!/^\d+$/.test(idNumber)) {
+            e.preventDefault();
+            alert('Please enter a valid ID number (numbers only)');
+            return;
+        }
+
+        // Validate Phone Numbers
+        if (!/^\d+$/.test(phone)) {
+            e.preventDefault();
+            alert('Please enter a valid phone number (numbers only)');
+            return;
+        }
+
+        // Validate Farm Size
+        if (farmSize < 0) {
+            e.preventDefault();
+            alert('Farm size cannot be negative');
+            return;
         }
     });
-});
+
+    // Add visual feedback for form inputs
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('invalid', function () {
+            this.classList.add('border-red-500');
+        });
+
+        input.addEventListener('input', function () {
+            if (this.validity.valid) {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
+            }
+        });
+    });
 </script>
 {% endblock %}
 {% endblock %}

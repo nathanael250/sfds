@@ -69,7 +69,7 @@ def dashboard():
     verified_requests = StockRequest.query.filter_by(
         requested_by=current_user.id, status="purchase_verified"
     ).count()
-    total_citizens = Citizen.query.filter_by(registered_by=current_user.id).count()
+    total_citizens = Citizen.query.count()
 
     # Get recent stock requests
     recent_requests = (
@@ -299,8 +299,8 @@ def available_stock():
 @login_required
 @requires_roles("agrodealer")
 def view_citizens():
-    """View all citizens registered by the agrodealer."""
-    citizens = Citizen.query.filter_by(registered_by=current_user.id).all()
+    """View all citizens."""
+    citizens = Citizen.query.all()
     return render_template("agrodealer/citizens.html", citizens=citizens)
 
 
@@ -352,10 +352,7 @@ def register_citizen():
                 national_id=national_id,
                 upi_number=upi_number,
                 phone_number=phone_number,
-                plot_size=plot_size,
-                allowed_seeds=allowed_seeds,
-                allowed_fertilizer=allowed_fertilizer,
-                registered_by=current_user.id
+                plot_size=plot_size
             )
             
             db.session.add(citizen)
@@ -503,7 +500,7 @@ def sell_product():
             return redirect(url_for("agrodealer.sell_product"))
 
     # GET request - show form
-    citizens = Citizen.query.filter_by(registered_by=current_user.id).all()
+    citizens = Citizen.query.all()
     products = Product.query.all()
 
     # Get current stock levels for display
