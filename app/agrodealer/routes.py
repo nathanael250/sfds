@@ -670,7 +670,7 @@ def transactions():
         stock_query = stock_query.join(Product).filter(Product.type == product_type)
 
     # Get inbound and outbound stock
-    inbound_stock = stock_query.filter_by(movement_type='in').order_by(StockMovement.created_at.desc()).all()
+    inbound_stock = StockMovement.query.filter_by( agrodealer_id=current_user.id, movement_type='in').order_by(StockMovement.created_at.desc()).all()
     outbound_stock = stock_query.filter_by(movement_type='out').order_by(StockMovement.created_at.desc()).all()
 
     # Prepare chart data
@@ -918,7 +918,6 @@ def generate_report():
                     f"RWF {transaction.total_amount:,.2f}",
                     transaction.citizen.name
                 ])
-            
             # Create table
             table = Table(table_data)
             table.setStyle(TableStyle([

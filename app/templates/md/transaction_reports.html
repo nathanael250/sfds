@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Transaction Reports</h1>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md mb-6">
+        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200 rounded-t-lg">
+            <h2 class="text-lg font-semibold text-gray-700">Filters</h2>
+        </div>
+        <div class="p-4">
+            <form method="GET" action="{{ url_for('md.transaction_reports') }}"
+                class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label for="agrodealer_id" class="block text-sm font-medium text-gray-700 mb-1">Agrodealer</label>
+                    <select
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        id="agrodealer_id" name="agrodealer_id">
+                        <option value="">All Agrodealers</option>
+                        {% for agrodealer in agrodealers %}
+                        <option value="{{ agrodealer.id }}" {% if selected_agrodealer_id==agrodealer.id|string
+                            %}selected{% endif %}>
+                            {{ agrodealer.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="date"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        id="start_date" name="start_date"
+                        value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+                </div>
+                <div>
+                    <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="date"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        id="end_date" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                </div>
+                <div>
+                    <label for="product_type" class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                    <select
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        id="product_type" name="product_type">
+                        <option value="all" {% if product_type=='all' %}selected{% endif %}>All</option>
+                        <option value="seed" {% if product_type=='seed' %}selected{% endif %}>Seeds</option>
+                        <option value="fertilizer" {% if product_type=='fertilizer' %}selected{% endif %}>Fertilizers
+                        </option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-white rounded-lg shadow-md mb-6">
+        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200 rounded-t-lg">
+            <h2 class="text-lg font-semibold text-gray-700">Export Options</h2>
+        </div>
+        <div class="p-4">
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ url_for('md.export_transaction_report', agrodealer_id=selected_agrodealer_id, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '', product_type=product_type, format='pdf') }}"
+                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    <i class="fas fa-file-pdf mr-2"></i> Export as PDF
+                </a>
+                <a href="{{ url_for('md.export_transaction_report', agrodealer_id=selected_agrodealer_id, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '', product_type=product_type, format='excel') }}"
+                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                    <i class="fas fa-file-excel mr-2"></i> Export as Excel
+                </a>
+                <a href="{{ url_for('md.export_transaction_report', agrodealer_id=selected_agrodealer_id, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '', product_type=product_type, format='csv') }}"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <i class="fas fa-file-csv mr-2"></i> Export as CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-indigo-500">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-indigo-600 uppercase mb-1">Total Sales</p>
+                        <p class="text-xl font-bold text-gray-800">RWF {{ "{:,.2f}".format(total_sales) }}</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-dollar-sign text-2xl text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-green-600 uppercase mb-1">Total Transactions</p>
+                        <p class="text-xl font-bold text-gray-800">{{ transactions|length }}</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-clipboard-list text-2xl text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not selected_agrodealer_id and agrodealer_stats %}
+    <!-- Agrodealer Summary -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-700">Agrodealer Summary</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Agrodealer</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                            Sales</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                            Transactions</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for agrodealer_id, stats in agrodealer_stats.items() %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ stats.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            RWF {{ "{:,.2f}".format(stats.total_sales) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ stats.total_transactions }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <a href="{{ url_for('md.transaction_reports', agrodealer_id=agrodealer_id, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '', product_type=product_type) }}"
+                                class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transactions Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-700">Transaction Details</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
+                        </th>
+                        {% if not selected_agrodealer_id %}
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Agrodealer</th>
+                        {% endif %}
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Quantity</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                            Amount</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Citizen</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        {% if not selected_agrodealer_id %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.seller.username }}
+                        </td>
+                        {% endif %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ transaction.product.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.quantity }} {{ transaction.product.unit }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            RWF {{ "{:,.2f}".format(transaction.total_amount) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.citizen.name }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if not selected_agrodealer_id %}6{% else %}5{% endif %}"
+                            class="px-6 py-4 text-center text-sm text-gray-500">
+                            No transactions found for the selected criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -143,6 +143,9 @@ class Transaction(db.Model):
     citizen = db.relationship('Citizen', back_populates='transactions')
     seller = db.relationship('User', backref=db.backref('sales', lazy=True))
 
+    def __repr__(self):
+        return f"<Transaction: {self.quantity} of {self.product.name} to {self.citizen.name}>"
+
 class Notification(db.Model):
     """Model for system notifications."""
     id = db.Column(db.Integer, primary_key=True)
@@ -155,5 +158,27 @@ class Notification(db.Model):
     # Relationships
     user = db.relationship('User', backref=db.backref('notifications', lazy=True))
     
+
+class StockMovement(db.Model):
+    """Model for tracking movements of stock (additions, reductions, transfers)."""
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    agrodealer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)  # Positive for additions, negative for reductions
+    movement_type = db.Column(db.String(20), nullable=False)  # 'in', 'out', 'adjustment'
+    reference_id = db.Column(db.Integer)  # ID of related transaction or stock request
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    product = db.relationship('Product', backref=db.backref('stock_movements', lazy=True))
+    agrodealer = db.relationship('User', backref=db.backref('stock_movements', lazy=True))
+    
+    def __repr__(self):
+        movement_direction = "+" if self.quantity > 0 else ""
+        return f'<StockMovement {self.movement_type}: {movement_direction}{self.quantity} {self.product.unit} of {self.product.name}>'
+
+
+
     def __repr__(self):
         return f'<Notification {self.title}>' 
