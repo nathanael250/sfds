@@ -651,8 +651,24 @@ def transactions():
     if product_type != "all":
         query = query.join(Product).filter(Product.type == product_type)
     
-    # Get transactions
-    transactions = query.order_by(Transaction.created_at.desc()).all()
+    # Get transactions with eager loading of relationships
+    transactions = query.options(
+        db.joinedload(Transaction.product),
+        db.joinedload(Transaction.citizen)
+    ).order_by(Transaction.created_at.desc()).all()
+    
+    # Format transactions for the template
+    formatted_transactions = []
+    for t in transactions:
+        formatted_transactions.append({
+            'date': t.created_at.strftime('%Y-%m-%d %H:%M'),
+            'product': t.product.name,
+            'type': t.product.type,
+            'citizen': t.citizen.name,
+            'quantity': f"{t.quantity} {t.product.unit}",
+            'unit_price': f"RWF {t.product.price_per_unit:,.2f}",
+            'total_amount': f"RWF {t.total_amount:,.2f}"
+        })
     
     # Calculate summary statistics
     total_sales = sum(t.total_amount for t in transactions)
@@ -670,8 +686,33 @@ def transactions():
         stock_query = stock_query.join(Product).filter(Product.type == product_type)
 
     # Get inbound and outbound stock
-    inbound_stock = StockMovement.query.filter_by( agrodealer_id=current_user.id, movement_type='in').order_by(StockMovement.created_at.desc()).all()
+    inbound_stock = stock_query.filter_by(movement_type='in').order_by(StockMovement.created_at.desc()).all()
     outbound_stock = stock_query.filter_by(movement_type='out').order_by(StockMovement.created_at.desc()).all()
+    
+    # Format stock movements
+    formatted_inbound_stock = []
+    for stock in inbound_stock:
+        formatted_inbound_stock.append({
+            'date': stock.created_at.strftime('%Y-%m-%d %H:%M'),
+            'product': stock.product.name,
+            'type': stock.product.type,
+            'quantity': f"{stock.quantity} {stock.product.unit}",
+            'unit_price': f"RWF {stock.product.price_per_unit:,.2f}",
+            'total_value': f"RWF {stock.quantity * stock.product.price_per_unit:,.2f}",
+            'supplier': stock.source or "N/A"
+        })
+    
+    formatted_outbound_stock = []
+    for stock in outbound_stock:
+        formatted_outbound_stock.append({
+            'date': stock.created_at.strftime('%Y-%m-%d %H:%M'),
+            'product': stock.product.name,
+            'type': stock.product.type,
+            'quantity': f"{stock.quantity} {stock.product.unit}",
+            'unit_price': f"RWF {stock.product.price_per_unit:,.2f}",
+            'total_value': f"RWF {stock.quantity * stock.product.price_per_unit:,.2f}",
+            'recipient': stock.destination or "N/A"
+        })
 
     # Prepare chart data
     stock_dates = []
@@ -728,7 +769,7 @@ def transactions():
     
     return render_template(
         "agrodealer/transactions.html",
-        transactions=transactions,
+        transactions=formatted_transactions,
         grouped_data=grouped_data,
         today=today,
         date_preset=date_preset,
@@ -740,8 +781,8 @@ def transactions():
         total_transactions=total_transactions,
         average_sale=average_sale,
         today_sales=today_sales,
-        inbound_stock=inbound_stock,
-        outbound_stock=outbound_stock,
+        inbound_stock=formatted_inbound_stock,
+        outbound_stock=formatted_outbound_stock,
         stock_dates=stock_dates if stock_dates else [],
         inbound_quantities=inbound_quantities if inbound_quantities else [],
         outbound_quantities=outbound_quantities if outbound_quantities else []
@@ -842,7 +883,7 @@ def generate_report():
         query = query.filter(Transaction.created_at >= start_date)
     if end_date:
         query = query.filter(Transaction.created_at <= end_date)
-    if product_type:
+    if product_type and product_type != 'all':
         query = query.join(Product).filter(Product.type == product_type)
 
     # Execute query
@@ -868,36 +909,6 @@ def generate_report():
             # Create elements
             elements = []
             
-            # Add logos
-            logo_table_data = []
-            logo_row = []
-            
-            # Add agrodealer logo if exists
-            if current_user.logo_path:
-                agrodealer_logo_path = os.path.join(current_app.root_path, 'static', current_user.logo_path)
-                if os.path.exists(agrodealer_logo_path):
-                    logo_row.append(Image(agrodealer_logo_path, width=100, height=50))
-                else:
-                    logo_row.append(Paragraph("", styles['Normal']))
-            else:
-                logo_row.append(Paragraph("", styles['Normal']))
-            
-            # Add system logo
-            system_logo_path = os.path.join(current_app.root_path, 'static', 'img', 'system_logo.png')
-            if os.path.exists(system_logo_path):
-                logo_row.append(Image(system_logo_path, width=100, height=50))
-            else:
-                logo_row.append(Paragraph("", styles['Normal']))
-            
-            logo_table_data.append(logo_row)
-            logo_table = Table(logo_table_data, colWidths=[doc.width/2, doc.width/2])
-            logo_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            elements.append(logo_table)
-            elements.append(Spacer(1, 20))
-            
             # Add title
             title = Paragraph("Transaction Report", title_style)
             elements.append(title)
@@ -918,6 +929,7 @@ def generate_report():
                     f"RWF {transaction.total_amount:,.2f}",
                     transaction.citizen.name
                 ])
+            
             # Create table
             table = Table(table_data)
             table.setStyle(TableStyle([
@@ -957,94 +969,6 @@ def generate_report():
         except Exception as e:
             flash(f"Error generating PDF: {str(e)}", "error")
             return redirect(url_for("agrodealer.transactions"))
-
-    elif export_format == "excel":
-        # Create Excel file
-        data = []
-        for t in transactions:
-            data.append({
-                'Date': t.created_at.strftime('%Y-%m-%d %H:%M'),
-                'Product': t.product.name,
-                'Type': t.product.type,
-                'Citizen': t.citizen.name,
-                'Citizen ID': t.citizen.national_id,
-                'Quantity': t.quantity,
-                'Unit': t.product.unit,
-                'Unit Price': t.product.price_per_unit,
-                'Total Amount': t.total_amount
-            })
-        
-        df = pd.DataFrame(data)
-        
-        # Create Excel writer
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df.to_excel(writer, sheet_name='Transactions', index=False)
-            
-            # Get workbook and worksheet
-            workbook = writer.book
-            worksheet = writer.sheets['Transactions']
-            
-            # Add formats
-            money_format = workbook.add_format({'num_format': '#,##0 "RWF"'})
-            date_format = workbook.add_format({'num_format': 'yyyy-mm-dd hh:mm'})
-            
-            # Set column formats
-            worksheet.set_column('A:A', 18, date_format)  # Date
-            worksheet.set_column('B:B', 15)  # Product
-            worksheet.set_column('C:C', 10)  # Type
-            worksheet.set_column('D:D', 20)  # Citizen
-            worksheet.set_column('E:E', 15)  # Citizen ID
-            worksheet.set_column('F:F', 10)  # Quantity
-            worksheet.set_column('G:G', 8)   # Unit
-            worksheet.set_column('H:H', 12, money_format)  # Unit Price
-            worksheet.set_column('I:I', 15, money_format)  # Total Amount
-        
-        # Create response
-        output.seek(0)
-        filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        
-        return send_file(
-            output,
-            download_name=filename,
-            as_attachment=True,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        
-    elif export_format == "csv":
-        # Create CSV file
-        data = []
-        for t in transactions:
-            data.append({
-                'Date': t.created_at.strftime('%Y-%m-%d %H:%M'),
-                'Product': t.product.name,
-                'Type': t.product.type,
-                'Citizen': t.citizen.name,
-                'Citizen ID': t.citizen.national_id,
-                'Quantity': t.quantity,
-                'Unit': t.product.unit,
-                'Unit Price': t.product.price_per_unit,
-                'Total Amount': t.total_amount
-            })
-        
-        df = pd.DataFrame(data)
-        
-        # Create response
-        output = BytesIO()
-        df.to_csv(output, index=False, encoding='utf-8')
-        output.seek(0)
-        
-        filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
-        return send_file(
-            output,
-            download_name=filename,
-            as_attachment=True,
-            mimetype='text/csv'
-        )
-    
-    # If no export format specified or invalid format, redirect back to transactions page
-    return redirect(url_for('agrodealer.transactions', **request.args))
 
 
 @bp.route("/upload_logo", methods=["GET", "POST"])

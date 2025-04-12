@@ -15,7 +15,8 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700">Date Range</label>
-                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <select
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option>Custom Range</option>
                     <option>Today</option>
                     <option>Last 7 Days</option>
@@ -23,13 +24,16 @@
                     <option>Last Month</option>
                 </select>
                 <div class="mt-2 space-y-2">
-                    <input type="date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <input type="date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="date"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="date"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Product Type</label>
-                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <select
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option>All Types</option>
                     <option>Seeds</option>
                     <option>Fertilizer</option>
@@ -37,7 +41,8 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Group By</label>
-                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <select
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option>No Grouping</option>
                     <option>Product</option>
                     <option>Type</option>
@@ -55,13 +60,16 @@
                 </button>
             </div>
             <div class="space-x-2">
-                <button type="button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                <button type="button" onclick="exportReport('pdf')"
+                    class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
                     Export PDF
                 </button>
-                <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                <button type="button" onclick="exportReport('excel')"
+                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                     Export Excel
                 </button>
-                <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                <button type="button" onclick="exportReport('csv')"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                     Export CSV
                 </button>
             </div>
@@ -92,13 +100,16 @@
     <div class="bg-white rounded-lg shadow-md">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex" aria-label="Tabs">
-                <button onclick="showTab('transactions')" class="tab-btn active-tab w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                <button onclick="showTab('transactions')"
+                    class="tab-btn active-tab w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Transaction History
                 </button>
-                <button onclick="showTab('inbound')" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                <button onclick="showTab('inbound')"
+                    class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Inbound Stock
                 </button>
-                <button onclick="showTab('outbound')" class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                <button onclick="showTab('outbound')"
+                    class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Outbound Stock
                 </button>
             </nav>
@@ -110,13 +121,20 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Citizen</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Total Amount</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -127,11 +145,12 @@
                             <td class="px-6 py-4 whitespace-nowrap">{{ transaction.type }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ transaction.unit_price }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ transaction.total_amount }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.unit_price }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.total_amount }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -142,13 +161,20 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Supplier</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -174,13 +200,20 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Unit Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Total Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Recipient</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -221,76 +254,94 @@
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.add('hidden');
         });
-        
+
         // Remove active class from all tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600');
             btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
         });
-        
+
         // Show selected tab content
         document.getElementById(tabName + '-tab').classList.remove('hidden');
-        
+
         // Add active class to selected tab
         event.currentTarget.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
         event.currentTarget.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
     }
 
     // Initialize Chart
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('stockMovementChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {{ stock_dates|tojson|default('[]')|safe }},
-                datasets: [{
-                    label: 'Inbound Stock',
-                    data: {{ inbound_quantities|tojson|default('[]')|safe }},
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4
+                labels: {{ stock_dates| tojson |default('[]') | safe }},
+        datasets: [{
+            label: 'Inbound Stock',
+            data: {{ inbound_quantities| tojson |default ('[]') | safe }},
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
                 }, {
-                    label: 'Outbound Stock',
-                    data: {{ outbound_quantities|tojson|default('[]')|safe }},
-                    borderColor: 'rgb(239, 68, 68)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    tension: 0.4
+            label: 'Outbound Stock',
+            data: {{ outbound_quantities| tojson |default ('[]') | safe }},
+        borderColor: 'rgb(239, 68, 68)',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.4
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Stock Movement Over Time'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Quantity'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    }
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: {
+                position: 'top'
+            },
+            title: {
+                display: true,
+                text: 'Stock Movement Over Time'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Quantity'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date'
                 }
             }
+        }
+    }
         });
     });
+    // Add this to your existing script section
+    function exportReport(format) {
+        // Get current filter values
+        const datePreset = document.querySelector('select[name="date_preset"]')?.value || 'custom';
+        const startDate = document.querySelector('input[name="start_date"]')?.value || '';
+        const endDate = document.querySelector('input[name="end_date"]')?.value || '';
+        const productType = document.querySelector('select[name="product_type"]')?.value || 'all';
+
+        // Build the URL with query parameters
+        let url = `/agrodealer/generate_report?format=${format}`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        if (productType) url += `&product_type=${productType}`;
+
+        // Redirect to the export URL
+        window.location.href = url;
+    }
+
 </script>
 
 <style>
@@ -298,13 +349,15 @@
         border-bottom-color: #4F46E5;
         color: #4F46E5;
     }
+
     .tab-btn {
         border-transparent: 2px;
         transition: all 0.3s;
     }
+
     .tab-btn:hover {
         border-bottom-color: #E5E7EB;
         color: #374151;
     }
 </style>
-{% endblock %} 
+{% endblock %}

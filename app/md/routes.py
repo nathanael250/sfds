@@ -1,6 +1,6 @@
 from flask import (
     render_template, redirect, url_for, flash, request, 
-    current_app, send_from_directory, send_file  # Add send_file here
+    current_app, send_from_directory, send_file,jsonify,  # Add send_file here
 )
 from flask_login import login_required, current_user
 from app.md import bp
@@ -167,34 +167,63 @@ def stock_verifications():
 @requires_roles('md')
 def view_stock_receipt(request_id):
     """View a stock receipt."""
+    print(f"Viewing receipt for request ID: {request_id}")  # Debug log
+    
     stock_request = StockRequest.query.get_or_404(request_id)
+    print(f"Found stock request: {stock_request.id}")  # Debug log
     
     if not stock_request.receipt_path:
-        return {'error': 'No receipt found'}, 404
+        print("No receipt path found")  # Debug log
+        return jsonify({'error': 'No receipt found'}), 404
+    
+    print(f"Receipt path: {stock_request.receipt_path}")  # Debug log
     
     try:
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], stock_request.receipt_path)
-        if not os.path.exists(file_path):
-            return {'error': 'Receipt file not found'}, 404
+        # Get the upload folder from config
+        upload_folder = current_app.config.get('UPLOAD_FOLDER')
+        print(f"Upload folder from config: {upload_folder}")  # Debug log
         
+        # Ensure we have a valid upload folder
+        if not upload_folder:
+            print("No upload folder configured")  # Debug log
+            return jsonify({'error': 'Server configuration error: No upload folder defined'}), 500
+        
+        # Construct the full file path
+        file_path = os.path.join(upload_folder, stock_request.receipt_path)
+        print(f"Full file path: {file_path}")  # Debug log
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            print(f"File not found at path: {file_path}")  # Debug log
+            return jsonify({'error': 'Receipt file not found'}), 404
+        
+        # Read the file
         with open(file_path, 'rb') as f:
             file_data = f.read()
         
         # Get file type
         file_ext = os.path.splitext(stock_request.receipt_path)[1].lower()
+        print(f"File extension: {file_ext}")  # Debug log
+        
         if file_ext in ['.jpg', '.jpeg', '.png']:
             file_type = f'image/{file_ext[1:]}'
         elif file_ext == '.pdf':
             file_type = 'application/pdf'
         else:
-            return {'error': 'Unsupported file type'}, 400
+            print(f"Unsupported file type: {file_ext}")  # Debug log
+            return jsonify({'error': 'Unsupported file type'}), 400
         
-        return {
+        print(f"Returning file of type: {file_type}")  # Debug log
+        return jsonify({
             'type': file_type,
             'data': base64.b64encode(file_data).decode('utf-8')
-        }
+        })
     except Exception as e:
-        return {'error': str(e)}, 500
+        print(f"Error viewing receipt: {str(e)}")  # Debug log
+        import traceback
+        traceback.print_exc()  # Print full traceback
+        return jsonify({'error': str(e)}), 500
+
 
 @bp.route("/stock/verifications/<int:request_id>/verify", methods=["POST"])
 @login_required
