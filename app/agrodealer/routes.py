@@ -600,13 +600,18 @@ def transactions():
     """View transaction history with filtering and grouping options."""
     # Get filter parameters
     date_preset = request.args.get("date_preset", "custom")
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
     product_type = request.args.get("product_type", "all")
     group_by = request.args.get("group_by", "none")
+    active_tab = request.args.get("tab", "transactions")
     
     # Calculate date range based on preset
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    start_date = None
+    end_date = None
+    
     if date_preset != "custom":
         if date_preset == "today":
             start_date = today
@@ -627,165 +632,178 @@ def transactions():
             last_month = today.replace(day=1) - timedelta(days=1)
             start_date = last_month.replace(day=1)
             end_date = today.replace(day=1) - timedelta(seconds=1)
-        elif date_preset == "this_year":
-            start_date = today.replace(month=1, day=1)
-            end_date = datetime.now()
     else:
         try:
-            if start_date:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            if end_date:
-                end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
         except ValueError:
             flash("Invalid date format. Please use YYYY-MM-DD format.", "error")
-            return redirect(url_for("agrodealer.transactions"))
     
-    # Build query with filters
-    query = Transaction.query.filter_by(sold_by=current_user.id)
+    # Build base queries for transactions and stock requests
+    transaction_query = Transaction.query.filter_by(sold_by=current_user.id)
+    stock_request_query = StockRequest.query.filter_by(requested_by=current_user.id, status="verified")
+    
+    # Apply date filters
     if start_date:
-        query = query.filter(Transaction.created_at >= start_date)
+        transaction_query = transaction_query.filter(Transaction.created_at >= start_date)
+        stock_request_query = stock_request_query.filter(StockRequest.receipt_verified_at >= start_date)
+    
     if end_date:
-        query = query.filter(Transaction.created_at <= end_date)
+        transaction_query = transaction_query.filter(Transaction.created_at <= end_date)
+        stock_request_query = stock_request_query.filter(StockRequest.receipt_verified_at <= end_date)
     
     # Apply product type filter
     if product_type != "all":
-        query = query.join(Product).filter(Product.type == product_type)
+        transaction_query = transaction_query.join(Product).filter(Product.type == product_type)
+        stock_request_query = stock_request_query.join(Product).filter(Product.type == product_type)
     
-    # Get transactions with eager loading of relationships
-    transactions = query.options(
-        db.joinedload(Transaction.product),
-        db.joinedload(Transaction.citizen)
-    ).order_by(Transaction.created_at.desc()).all()
+    # Get data with eager loading of relationships
+    transactions = (
+        transaction_query.options(
+            db.joinedload(Transaction.product),
+            db.joinedload(Transaction.citizen)
+        )
+        .order_by(Transaction.created_at.desc())
+        .all()
+    )
     
-    # Format transactions for the template
-    formatted_transactions = []
-    for t in transactions:
-        formatted_transactions.append({
-            'date': t.created_at.strftime('%Y-%m-%d %H:%M'),
-            'product': t.product.name,
-            'type': t.product.type,
-            'citizen': t.citizen.name,
-            'quantity': f"{t.quantity} {t.product.unit}",
-            'unit_price': f"RWF {t.product.price_per_unit:,.2f}",
-            'total_amount': f"RWF {t.total_amount:,.2f}"
-        })
+    inbound_stock = (
+        stock_request_query.options(
+            db.joinedload(StockRequest.product)
+        )
+        .order_by(StockRequest.receipt_verified_at.desc() if StockRequest.receipt_verified_at else StockRequest.created_at.desc())
+        .all()
+    )
+    
+    # Outbound stock is the same as transactions
+    outbound_stock = transactions
     
     # Calculate summary statistics
     total_sales = sum(t.total_amount for t in transactions)
     total_transactions = len(transactions)
     average_sale = total_sales / total_transactions if total_transactions > 0 else 0
-    today_sales = sum(t.total_amount for t in transactions if t.created_at.date() == today.date())
-
-    # Get stock movements
-    stock_query = StockMovement.query.filter_by(agrodealer_id=current_user.id)
-    if start_date:
-        stock_query = stock_query.filter(StockMovement.created_at >= start_date)
-    if end_date:
-        stock_query = stock_query.filter(StockMovement.created_at <= end_date)
-    if product_type != "all":
-        stock_query = stock_query.join(Product).filter(Product.type == product_type)
-
-    # Get inbound and outbound stock
-    inbound_stock = stock_query.filter_by(movement_type='in').order_by(StockMovement.created_at.desc()).all()
-    outbound_stock = stock_query.filter_by(movement_type='out').order_by(StockMovement.created_at.desc()).all()
     
-    # Format stock movements
-    formatted_inbound_stock = []
-    for stock in inbound_stock:
-        formatted_inbound_stock.append({
-            'date': stock.created_at.strftime('%Y-%m-%d %H:%M'),
-            'product': stock.product.name,
-            'type': stock.product.type,
-            'quantity': f"{stock.quantity} {stock.product.unit}",
-            'unit_price': f"RWF {stock.product.price_per_unit:,.2f}",
-            'total_value': f"RWF {stock.quantity * stock.product.price_per_unit:,.2f}",
-            'supplier': stock.source or "N/A"
-        })
+    # Calculate today's sales
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_sales = sum(t.total_amount for t in transactions if t.created_at >= today_start)
     
-    formatted_outbound_stock = []
-    for stock in outbound_stock:
-        formatted_outbound_stock.append({
-            'date': stock.created_at.strftime('%Y-%m-%d %H:%M'),
-            'product': stock.product.name,
-            'type': stock.product.type,
-            'quantity': f"{stock.quantity} {stock.product.unit}",
-            'unit_price': f"RWF {stock.product.price_per_unit:,.2f}",
-            'total_value': f"RWF {stock.quantity * stock.product.price_per_unit:,.2f}",
-            'recipient': stock.destination or "N/A"
-        })
-
     # Prepare chart data
-    stock_dates = []
-    inbound_quantities = []
-    outbound_quantities = []
-
-    # Get date range for chart
-    if start_date and end_date:
-        current_date = start_date
-        while current_date <= end_date:
-            date_str = current_date.strftime('%Y-%m-%d')
-            stock_dates.append(date_str)
-            
-            # Sum inbound quantities for this date
-            inbound_sum = sum(
-                sm.quantity for sm in inbound_stock 
-                if sm.created_at.date() == current_date.date()
-            )
-            inbound_quantities.append(inbound_sum)
-            
-            # Sum outbound quantities for this date
-            outbound_sum = sum(
-                sm.quantity for sm in outbound_stock 
-                if sm.created_at.date() == current_date.date()
-            )
-            outbound_quantities.append(outbound_sum)
-            
-            current_date += timedelta(days=1)
+    # Get dates for the last 30 days
+    date_range = [(datetime.now() - timedelta(days=i)).date() for i in range(30)]
+    date_range.reverse()  # Oldest to newest
     
-    # Group data if requested
-    grouped_data = None
-    if group_by != "none" and transactions:
+    # Format dates for chart
+    stock_dates = [d.strftime("%Y-%m-%d") for d in date_range]
+    
+    # Calculate inbound quantities by date
+    inbound_quantities = []
+    for date in date_range:
+        date_start = datetime.combine(date, datetime.min.time())
+        date_end = datetime.combine(date, datetime.max.time())
+    # Calculate inbound quantities by date
+    inbound_quantities = []
+    for date in date_range:
+        date_start = datetime.combine(date, datetime.min.time())
+        date_end = datetime.combine(date, datetime.max.time())
+        
+        # Sum quantities for stock requests verified on this date
+        daily_inbound = sum(
+            sr.quantity for sr in inbound_stock 
+            if sr.receipt_verified_at and date_start <= sr.receipt_verified_at <= date_end
+        )
+        inbound_quantities.append(daily_inbound)
+    
+    # Calculate outbound quantities by date
+    outbound_quantities = []
+    for date in date_range:
+        date_start = datetime.combine(date, datetime.min.time())
+        date_end = datetime.combine(date, datetime.max.time())
+        
+        # Sum quantities for transactions on this date
+        daily_outbound = sum(
+            t.quantity for t in transactions 
+            if date_start <= t.created_at <= date_end
+        )
+        outbound_quantities.append(daily_outbound)
+    
+    # Apply grouping if requested
+    grouped_transactions = None
+    if group_by != "none":
         grouped_data = {}
-        for t in transactions:
-            if group_by == "daily":
-                key = t.created_at.strftime('%Y-%m-%d')
-            elif group_by == "weekly":
-                key = t.created_at.strftime('%Y-W%W')
-            elif group_by == "monthly":
-                key = t.created_at.strftime('%Y-%m')
-            elif group_by == "product":
-                key = t.product.name
-            
-            if key not in grouped_data:
-                grouped_data[key] = {
-                    'total_amount': 0,
-                    'total_quantity': 0,
-                    'transactions': 0
-                }
-            
-            grouped_data[key]['total_amount'] += t.total_amount
-            grouped_data[key]['total_quantity'] += t.quantity
-            grouped_data[key]['transactions'] += 1
+        
+        if group_by == "product":
+            # Group by product
+            for t in transactions:
+                product_name = t.product.name
+                if product_name not in grouped_data:
+                    grouped_data[product_name] = {
+                        "name": product_name,
+                        "quantity": 0,
+                        "total_amount": 0,
+                        "count": 0
+                    }
+                grouped_data[product_name]["quantity"] += t.quantity
+                grouped_data[product_name]["total_amount"] += t.total_amount
+                grouped_data[product_name]["count"] += 1
+        
+        elif group_by == "type":
+            # Group by product type
+            for t in transactions:
+                product_type = t.product.type
+                if product_type not in grouped_data:
+                    grouped_data[product_type] = {
+                        "name": product_type.title(),
+                        "quantity": 0,
+                        "total_amount": 0,
+                        "count": 0
+                    }
+                grouped_data[product_type]["quantity"] += t.quantity
+                grouped_data[product_type]["total_amount"] += t.total_amount
+                grouped_data[product_type]["count"] += 1
+        
+        elif group_by == "date":
+            # Group by date
+            for t in transactions:
+                date_str = t.created_at.strftime("%Y-%m-%d")
+                if date_str not in grouped_data:
+                    grouped_data[date_str] = {
+                        "name": date_str,
+                        "quantity": 0,
+                        "total_amount": 0,
+                        "count": 0
+                    }
+                grouped_data[date_str]["quantity"] += t.quantity
+                grouped_data[date_str]["total_amount"] += t.total_amount
+                grouped_data[date_str]["count"] += 1
+        
+        # Convert to list and sort
+        grouped_transactions = list(grouped_data.values())
+        if group_by == "date":
+            grouped_transactions.sort(key=lambda x: x["name"], reverse=True)
+        else:
+            grouped_transactions.sort(key=lambda x: x["total_amount"], reverse=True)
     
     return render_template(
         "agrodealer/transactions.html",
-        transactions=formatted_transactions,
-        grouped_data=grouped_data,
-        today=today,
-        date_preset=date_preset,
-        start_date=start_date.strftime('%Y-%m-%d') if start_date else '',
-        end_date=end_date.strftime('%Y-%m-%d') if end_date else '',
-        product_type=product_type,
-        group_by=group_by,
+        transactions=transactions,
+        inbound_stock=inbound_stock,
+        outbound_stock=outbound_stock,
         total_sales=total_sales,
         total_transactions=total_transactions,
         average_sale=average_sale,
         today_sales=today_sales,
-        inbound_stock=formatted_inbound_stock,
-        outbound_stock=formatted_outbound_stock,
-        stock_dates=stock_dates if stock_dates else [],
-        inbound_quantities=inbound_quantities if inbound_quantities else [],
-        outbound_quantities=outbound_quantities if outbound_quantities else []
+        stock_dates=stock_dates,
+        inbound_quantities=inbound_quantities,
+        outbound_quantities=outbound_quantities,
+        date_preset=date_preset,
+        start_date=start_date,
+        end_date=end_date,
+        product_type=product_type,
+        group_by=group_by,
+        active_tab=active_tab,
+        grouped_transactions=grouped_transactions
     )
 
 
@@ -863,112 +881,399 @@ def reports():
 @login_required
 @requires_roles("agrodealer")
 def generate_report():
-    """Generate and download transaction report in PDF or Excel format."""
+    """Generate and export transaction reports in various formats."""
     # Get filter parameters
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
-    product_type = request.args.get("product_type")
+    date_preset = request.args.get("date_preset", "custom")
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
+    product_type = request.args.get("product_type", "all")
+    group_by = request.args.get("group_by", "none")
     export_format = request.args.get("format", "pdf")
-
-    # Convert string dates to datetime objects
-    if start_date:
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    if end_date:
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+    active_tab = request.args.get("tab", "transactions")
     
-    # Build query
-    query = Transaction.query.filter_by(sold_by=current_user.id)
-
-    if start_date:
-        query = query.filter(Transaction.created_at >= start_date)
-    if end_date:
-        query = query.filter(Transaction.created_at <= end_date)
-    if product_type and product_type != 'all':
-        query = query.join(Product).filter(Product.type == product_type)
+    # Calculate date range based on preset
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Execute query
-    transactions = query.all()
+    start_date = None
+    end_date = None
     
-    if export_format == "pdf":
+    if date_preset != "custom":
+        if date_preset == "today":
+            start_date = today
+            end_date = datetime.now()
+        elif date_preset == "yesterday":
+            start_date = today - timedelta(days=1)
+            end_date = today - timedelta(seconds=1)
+        elif date_preset == "this_week":
+            start_date = today - timedelta(days=today.weekday())
+            end_date = datetime.now()
+        elif date_preset == "last_week":
+            start_date = today - timedelta(days=today.weekday() + 7)
+            end_date = start_date + timedelta(days=7) - timedelta(seconds=1)
+        elif date_preset == "this_month":
+            start_date = today.replace(day=1)
+            end_date = datetime.now()
+        elif date_preset == "last_month":
+            last_month = today.replace(day=1) - timedelta(days=1)
+            start_date = last_month.replace(day=1)
+            end_date = today.replace(day=1) - timedelta(seconds=1)
+    else:
         try:
-            # Create PDF buffer
-            buffer = BytesIO()
-            
-            # Create PDF document
-            doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
-            
-            # Create styles
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontSize=16,
-                spaceAfter=30
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+        except ValueError:
+            flash("Invalid date format. Please use YYYY-MM-DD format.", "error")
+    
+    # Build base queries based on active tab
+    if active_tab == "transactions" or active_tab == "outbound":
+        # For transactions or outbound tab
+        query = Transaction.query.filter_by(sold_by=current_user.id)
+        
+        # Apply date filters
+        if start_date:
+            query = query.filter(Transaction.created_at >= start_date)
+        if end_date:
+            query = query.filter(Transaction.created_at <= end_date)
+        
+        # Apply product type filter
+        if product_type != "all":
+            query = query.join(Product).filter(Product.type == product_type)
+        
+        # Get data with eager loading of relationships
+        data = (
+            query.options(
+                db.joinedload(Transaction.product),
+                db.joinedload(Transaction.citizen)
             )
+            .order_by(Transaction.created_at.desc())
+            .all()
+        )
+        
+        # Set report title based on tab
+        if active_tab == "transactions":
+            report_title = "Transaction History Report"
+        else:
+            report_title = "Outbound Stock Report"
             
-            # Create elements
-            elements = []
-            
-            # Add title
-            title = Paragraph("Transaction Report", title_style)
-            elements.append(title)
-            
-            # Add date range
-            date_text = f"Date Range: {start_date.strftime('%Y-%m-%d') if start_date else 'Start'} to {end_date.strftime('%Y-%m-%d') if end_date else 'End'}"
-            elements.append(Paragraph(date_text, styles['Normal']))
+    elif active_tab == "inbound":
+        # For inbound tab
+        query = StockRequest.query.filter_by(requested_by=current_user.id, status="verified")
+        
+        # Apply date filters
+        if start_date:
+            query = query.filter(StockRequest.receipt_verified_at >= start_date)
+        if end_date:
+            query = query.filter(StockRequest.receipt_verified_at <= end_date)
+        
+        # Apply product type filter
+        if product_type != "all":
+            query = query.join(Product).filter(Product.type == product_type)
+        
+        # Get data with eager loading of relationships
+        data = (
+            query.options(
+                db.joinedload(StockRequest.product)
+            )
+            .order_by(StockRequest.receipt_verified_at.desc() if StockRequest.receipt_verified_at else StockRequest.created_at.desc())
+            .all()
+        )
+        
+        report_title = "Inbound Stock Report"
+    
+    # Generate report based on format
+    if export_format == "pdf":
+        # Create PDF buffer
+        buffer = BytesIO()
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+        
+        # Create styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "CustomTitle", parent=styles["Heading1"], fontSize=16, spaceAfter=30
+        )
+        
+        # Create elements
+        elements = []
+        
+        # Add title
+        title = Paragraph(f"{report_title} - {current_user.username}", title_style)
+        elements.append(title)
+        
+        # Add date range
+        date_text = f"Date Range: {start_date.strftime('%Y-%m-%d') if start_date else 'Start'} to {end_date.strftime('%Y-%m-%d') if end_date else 'End'}"
+        elements.append(Paragraph(date_text, styles["Normal"]))
+        elements.append(Spacer(1, 20))
+        
+        # Create table data based on active tab
+        if active_tab == "transactions" or active_tab == "outbound":
+            # Add summary
+            total_amount = sum(t.total_amount for t in data)
+            summary_text = f"Total Sales: RWF {total_amount:,.2f} | Total Transactions: {len(data)}"
+            elements.append(Paragraph(summary_text, styles["Normal"]))
             elements.append(Spacer(1, 20))
             
-            # Create table data
-            table_data = [['Date', 'Product', 'Quantity', 'Total Amount', 'Citizen']]
+            # Create table header
+            table_data = [
+                ["Date", "Product", "Type", "Citizen", "Quantity", "Unit Price", "Total Amount"]
+            ]
             
-            for transaction in transactions:
+            # Add rows
+            for item in data:
                 table_data.append([
-                    transaction.created_at.strftime('%Y-%m-%d %H:%M'),
-                    transaction.product.name,
-                    f"{transaction.quantity} {transaction.product.unit}",
-                    f"RWF {transaction.total_amount:,.2f}",
-                    transaction.citizen.name
+                    item.created_at.strftime("%Y-%m-%d %H:%M"),
+                    item.product.name,
+                    item.product.type.title(),
+                    item.citizen.name,
+                    f"{item.quantity} {item.product.unit}",
+                    f"RWF {item.product.price_per_unit:,.2f}",
+                    f"RWF {item.total_amount:,.2f}"
                 ])
+        
+        elif active_tab == "inbound":
+            # Add summary
+            total_quantity = sum(item.quantity for item in data)
+            total_value = sum(item.quantity * item.product.price_per_unit for item in data)
+            summary_text = f"Total Items: {total_quantity} | Total Value: RWF {total_value:,.2f}"
+            elements.append(Paragraph(summary_text, styles["Normal"]))
+            elements.append(Spacer(1, 20))
             
-            # Create table
-            table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 12),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 10),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            # Create table header
+            table_data = [
+                ["Date", "Product", "Type", "Quantity", "Unit Price", "Total Value", "Status"]
+            ]
             
-            elements.append(table)
-            
-            # Build PDF
-            doc.build(elements)
-            
-            # Get PDF data
-            pdf = buffer.getvalue()
-            buffer.close()
+            # Add rows
+            for item in data:
+                verified_date = item.receipt_verified_at.strftime("%Y-%m-%d") if item.receipt_verified_at else item.created_at.strftime("%Y-%m-%d")
+                total_value = item.quantity * item.product.price_per_unit
+                
+                table_data.append([
+                    verified_date,
+                    item.product.name,
+                    item.product.type.title(),
+                    f"{item.quantity} {item.product.unit}",
+                    f"RWF {item.product.price_per_unit:,.2f}",
+                    f"RWF {total_value:,.2f}",
+                    item.status.replace("_", " ").title()
+                ])
+        
+        # Create table
+        table = Table(table_data)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 12),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+                    ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 1), (-1, -1), 10),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ]
+            )
+        )
+        
+        elements.append(table)
+        
+        # Build PDF
+        doc.build(elements)
+        
+        # Get PDF data
+        pdf = buffer.getvalue()
+        buffer.close()
         
         # Create response
-            filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filename = f"{active_tab}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         
-            return send_file(
-                    BytesIO(pdf),
-                download_name=filename,
-                as_attachment=True,
-                    mimetype='application/pdf'
-                )
-        except Exception as e:
-            flash(f"Error generating PDF: {str(e)}", "error")
-            return redirect(url_for("agrodealer.transactions"))
+        return send_file(
+            BytesIO(pdf),
+            download_name=filename,
+            as_attachment=True,
+            mimetype="application/pdf",
+        )
+    
+    elif export_format == "excel":
+        # Create Excel data
+        output = BytesIO()
+        
+        if active_tab == "transactions" or active_tab == "outbound":
+            # Create data for transactions/outbound
+            excel_data = []
+            for item in data:
+                excel_data.append({
+                    "Date": item.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "Product": item.product.name,
+                    "Type": item.product.type.title(),
+                    "Citizen": item.citizen.name,
+                    "Citizen ID": item.citizen.national_id,
+                    "Quantity": item.quantity,
+                    "Unit": item.product.unit,
+                    "Unit Price": item.product.price_per_unit,
+                    "Total Amount": item.total_amount
+                })
+        
+        elif active_tab == "inbound":
+            # Create data for inbound
+            excel_data = []
+            for item in data:
+                verified_date = item.receipt_verified_at if item.receipt_verified_at else item.created_at
+                total_value = item.quantity * item.product.price_per_unit
+                
+                excel_data.append({
+                    "Date": verified_date.strftime("%Y-%m-%d"),
+                    "Product": item.product.name,
+                    "Type": item.product.type.title(),
+                    "Quantity": item.quantity,
+                    "Unit": item.product.unit,
+                    "Unit Price": item.product.price_per_unit,
+                    "Total Value": total_value,
+                    "Status": item.status.replace("_", " ").title()
+                })
+        
+        # Create DataFrame
+        df = pd.DataFrame(excel_data)
+        
+        # Write to Excel
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, sheet_name=active_tab.title(), index=False)
+            
+            # Get workbook and worksheet
+            workbook = writer.book
+            worksheet = writer.sheets[active_tab.title()]
+            
+            # Add formats
+            money_format = workbook.add_format({"num_format": '#,##0 "RWF"'})
+            date_format = workbook.add_format({"num_format": "yyyy-mm-dd hh:mm"})
+            
+            # Set column formats
+            if active_tab == "transactions" or active_tab == "outbound":
+                worksheet.set_column("A:A", 18, date_format)  # Date
+                worksheet.set_column("B:B", 15)  # Product
+                worksheet.set_column("C:C", 10)  # Type
+                worksheet.set_column("D:D", 20)  # Citizen
+                worksheet.set_column("E:E", 15)  # Citizen ID
+                worksheet.set_column("F:F", 10)  # Quantity
+                worksheet.set_column("G:G", 8)   # Unit
+                worksheet.set_column("H:H", 12, money_format)  # Unit Price
+                worksheet.set_column("I:I", 15, money_format)  # Total Amount
+            
+            elif active_tab == "inbound":
+                worksheet.set_column("A:A", 18, date_format)  # Date
+                worksheet.set_column("B:B", 15)  # Product
+                worksheet.set_column("C:C", 10)  # Type
+                worksheet.set_column("D:D", 10)  # Quantity
+                worksheet.set_column("E:E", 8)   # Unit
+                worksheet.set_column("F:F", 12, money_format)  # Unit Price
+                worksheet.set_column("G:G", 15, money_format)  # Total Value
+                worksheet.set_column("H:H", 15)  # Status
+            
+            # Add title and summary
+            title_format = workbook.add_format({
+                'bold': True,
+                'font_size': 14,
+                'align': 'center',
+                'valign': 'vcenter'
+            })
+            
+            # Add a title
+            title = f"{report_title} - {current_user.username}"
+            worksheet.merge_range('A1:I1', title, title_format)
+            
+            # Add date range
+            date_range = f"Date Range: {start_date.strftime('%Y-%m-%d') if start_date else 'Start'} to {end_date.strftime('%Y-%m-%d') if end_date else 'End'}"
+            worksheet.merge_range('A2:I2', date_range, workbook.add_format({'align': 'center'}))
+            
+            # Add summary
+            if active_tab == "transactions" or active_tab == "outbound":
+                total_amount = sum(item.total_amount for item in data)
+                summary = f"Total Sales: RWF {total_amount:,.2f} | Total Transactions: {len(data)}"
+            else:
+                total_quantity = sum(item.quantity for item in data)
+                total_value = sum(item.quantity * item.product.price_per_unit for item in data)
+                summary = f"Total Items: {total_quantity} | Total Value: RWF {total_value:,.2f}"
+                
+            worksheet.merge_range('A3:I3', summary, workbook.add_format({'align': 'center'}))
+            
+            # Adjust the data range to start after the header rows
+            worksheet.set_column('A4:I4', None, workbook.add_format({'bold': True}))
+        
+        # Create response
+        output.seek(0)
+        filename = f"{active_tab}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        return send_file(
+            output,
+            download_name=filename,
+            as_attachment=True,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    
+    elif export_format == "csv":
+        # Create CSV data
+        if active_tab == "transactions" or active_tab == "outbound":
+            # Create data for transactions/outbound
+            csv_data = []
+            for item in data:
+                csv_data.append({
+                    "Date": item.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "Product": item.product.name,
+                    "Type": item.product.type.title(),
+                    "Citizen": item.citizen.name,
+                    "Citizen ID": item.citizen.national_id,
+                    "Quantity": item.quantity,
+                    "Unit": item.product.unit,
+                    "Unit Price": item.product.price_per_unit,
+                    "Total Amount": item.total_amount
+                })
+        
+        elif active_tab == "inbound":
+            # Create data for inbound
+            csv_data = []
+            for item in data:
+                verified_date = item.receipt_verified_at if item.receipt_verified_at else item.created_at
+                total_value = item.quantity * item.product.price_per_unit
+                
+                csv_data.append({
+                    "Date": verified_date.strftime("%Y-%m-%d"),
+                    "Product": item.product.name,
+                    "Type": item.product.type.title(),
+                    "Quantity": item.quantity,
+                    "Unit": item.product.unit,
+                    "Unit Price": item.product.price_per_unit,
+                    "Total Value": total_value,
+                    "Status": item.status.replace("_", " ").title()
+                })
+        
+        # Create DataFrame
+        df = pd.DataFrame(csv_data)
+        
+        # Create response
+        output = BytesIO()
+        df.to_csv(output, index=False, encoding="utf-8")
+        output.seek(0)
+        
+        filename = f"{active_tab}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        return send_file(
+            output,
+            download_name=filename,
+            as_attachment=True,
+            mimetype="text/csv",
+        )
+    
+    # If we get here, something went wrong
+    flash("Invalid export format specified", "error")
+    return redirect(url_for("agrodealer.transactions"))
 
 
 @bp.route("/upload_logo", methods=["GET", "POST"])

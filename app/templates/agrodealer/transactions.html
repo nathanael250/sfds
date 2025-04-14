@@ -12,75 +12,91 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Date Range</label>
-                <select
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option>Custom Range</option>
-                    <option>Today</option>
-                    <option>Last 7 Days</option>
-                    <option>This Month</option>
-                    <option>Last Month</option>
-                </select>
-                <div class="mt-2 space-y-2">
-                    <input type="date"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <input type="date"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <form id="filter-form" method="GET" action="{{ url_for('agrodealer.transactions') }}">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                    <select name="date_preset" id="date-preset"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        onchange="toggleDateInputs()">
+                        <option value="custom" {% if date_preset=='custom' %}selected{% endif %}>Custom Range</option>
+                        <option value="today" {% if date_preset=='today' %}selected{% endif %}>Today</option>
+                        <option value="yesterday" {% if date_preset=='yesterday' %}selected{% endif %}>Yesterday
+                        </option>
+                        <option value="this_week" {% if date_preset=='this_week' %}selected{% endif %}>This Week
+                        </option>
+                        <option value="last_week" {% if date_preset=='last_week' %}selected{% endif %}>Last Week
+                        </option>
+                        <option value="this_month" {% if date_preset=='this_month' %}selected{% endif %}>This Month
+                        </option>
+                        <option value="last_month" {% if date_preset=='last_month' %}selected{% endif %}>Last Month
+                        </option>
+                    </select>
+                    <div id="custom-date-inputs" class="mt-2 space-y-2" {% if date_preset !='custom'
+                        %}style="display: none;" {% endif %}>
+                        <input type="date" name="start_date" id="start-date"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+                        <input type="date" name="end_date" id="end-date"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Product Type</label>
+                    <select name="product_type"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="all" {% if product_type=='all' %}selected{% endif %}>All Types</option>
+                        <option value="seed" {% if product_type=='seed' %}selected{% endif %}>Seeds</option>
+                        <option value="fertilizer" {% if product_type=='fertilizer' %}selected{% endif %}>Fertilizer
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Group By</label>
+                    <select name="group_by"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="none" {% if group_by=='none' %}selected{% endif %}>No Grouping</option>
+                        <option value="product" {% if group_by=='product' %}selected{% endif %}>Product</option>
+                        <option value="type" {% if group_by=='type' %}selected{% endif %}>Type</option>
+                        <option value="date" {% if group_by=='date' %}selected{% endif %}>Date</option>
+                    </select>
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Product Type</label>
-                <select
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option>All Types</option>
-                    <option>Seeds</option>
-                    <option>Fertilizer</option>
-                </select>
+            <div class="mt-4 flex justify-between">
+                <div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Apply Filters
+                    </button>
+                    <button type="button" onclick="resetFilters()"
+                        class="ml-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200">
+                        Reset
+                    </button>
+                </div>
+                <div class="space-x-2">
+                    <input type="hidden" name="tab" id="current-tab" value="{{ active_tab|default('transactions') }}">
+                    <button type="button" onclick="exportReport('pdf')"
+                        class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                        Export PDF
+                    </button>
+                    <button type="button" onclick="exportReport('excel')"
+                        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        Export Excel
+                    </button>
+                    <button type="button" onclick="exportReport('csv')"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        Export CSV
+                    </button>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Group By</label>
-                <select
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option>No Grouping</option>
-                    <option>Product</option>
-                    <option>Type</option>
-                    <option>Date</option>
-                </select>
-            </div>
-        </div>
-        <div class="mt-4 flex justify-between">
-            <div>
-                <button type="button" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                    Apply Filters
-                </button>
-                <button type="button" class="ml-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200">
-                    Reset
-                </button>
-            </div>
-            <div class="space-x-2">
-                <button type="button" onclick="exportReport('pdf')"
-                    class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
-                    Export PDF
-                </button>
-                <button type="button" onclick="exportReport('excel')"
-                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                    Export Excel
-                </button>
-                <button type="button" onclick="exportReport('csv')"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                    Export CSV
-                </button>
-            </div>
-        </div>
+        </form>
     </div>
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Sales</h3>
-            <p class="text-3xl font-bold text-indigo-600">RWF {{ total_sales|default(0) }}</p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ "{:,.2f}".format(total_sales|default(0)) }}</p>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Transactions</h3>
@@ -88,11 +104,11 @@
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Average Sale</h3>
-            <p class="text-3xl font-bold text-indigo-600">RWF {{ average_sale|default(0) }}</p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ "{:,.2f}".format(average_sale|default(0)) }}</p>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Today's Sales</h3>
-            <p class="text-3xl font-bold text-indigo-600">RWF {{ today_sales|default(0) }}</p>
+            <p class="text-3xl font-bold text-indigo-600">RWF {{ "{:,.2f}".format(today_sales|default(0)) }}</p>
         </div>
     </div>
 
@@ -101,22 +117,23 @@
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex" aria-label="Tabs">
                 <button onclick="showTab('transactions')"
-                    class="tab-btn active-tab w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    class="tab-btn {{ 'active-tab' if active_tab == 'transactions' or not active_tab }} w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Transaction History
                 </button>
                 <button onclick="showTab('inbound')"
-                    class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    class="tab-btn {{ 'active-tab' if active_tab == 'inbound' }} w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Inbound Stock
                 </button>
                 <button onclick="showTab('outbound')"
-                    class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
+                    class="tab-btn {{ 'active-tab' if active_tab == 'outbound' }} w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm">
                     Outbound Stock
                 </button>
             </nav>
         </div>
 
         <!-- Transaction History Tab -->
-        <div id="transactions-tab" class="tab-content p-6">
+        <div id="transactions-tab"
+            class="tab-content {{ '' if active_tab == 'transactions' or not active_tab else 'hidden' }} p-6">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -140,23 +157,31 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for transaction in transactions %}
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.date }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.type }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.unit_price }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.total_amount }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.created_at.strftime('%Y-%m-%d %H:%M')
+                                }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.type|title }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }} {{
+                                transaction.product.unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{
+                                "{:,.2f}".format(transaction.product.price_per_unit) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ "{:,.2f}".format(transaction.total_amount) }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No transactions found for the
+                                selected criteria.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
-
                 </table>
             </div>
         </div>
 
         <!-- Inbound Stock Tab -->
-        <div id="inbound-tab" class="tab-content hidden p-6">
+        <div id="inbound-tab" class="tab-content {{ '' if active_tab == 'inbound' else 'hidden' }} p-6">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -174,19 +199,34 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Total Value</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Supplier</th>
+                                Status</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for stock in inbound_stock %}
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.date }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.type }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.unit_price }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.total_value }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.supplier }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.receipt_verified_at.strftime('%Y-%m-%d') if
+                                stock.receipt_verified_at else stock.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product.type|title }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }} {{ stock.product.unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{
+                                "{:,.2f}".format(stock.product.price_per_unit) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ "{:,.2f}".format(stock.quantity *
+                                stock.product.price_per_unit) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if stock.status == 'verified' %}bg-green-100 text-green-800
+                                {% elif stock.status == 'approved_by_md' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ stock.status|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No inbound stock found for the
+                                selected criteria.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -195,7 +235,7 @@
         </div>
 
         <!-- Outbound Stock Tab -->
-        <div id="outbound-tab" class="tab-content hidden p-6">
+        <div id="outbound-tab" class="tab-content {{ '' if active_tab == 'outbound' else 'hidden' }} p-6">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -217,15 +257,24 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for stock in outbound_stock %}
+                        {% for transaction in outbound_stock %}
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.date }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.product }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.type }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.quantity }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.unit_price }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ stock.total_value }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ stock.recipient }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.created_at.strftime('%Y-%m-%d %H:%M')
+                                }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.product.type|title }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }} {{
+                                transaction.product.unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{
+                                "{:,.2f}".format(transaction.product.price_per_unit) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">RWF {{ "{:,.2f}".format(transaction.total_amount) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ transaction.citizen.name }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No outbound stock found for the
+                                selected criteria.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -267,6 +316,53 @@
         // Add active class to selected tab
         event.currentTarget.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
         event.currentTarget.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+        // Update hidden tab input for form submission
+        document.getElementById('current-tab').value = tabName;
+    }
+
+    // Toggle date inputs based on date preset selection
+    function toggleDateInputs() {
+        const datePreset = document.getElementById('date-preset').value;
+        const customDateInputs = document.getElementById('custom-date-inputs');
+
+        if (datePreset === 'custom') {
+            customDateInputs.style.display = 'block';
+        } else {
+            customDateInputs.style.display = 'none';
+        }
+    }
+
+    // Reset filters
+    function resetFilters() {
+        document.getElementById('date-preset').value = 'custom';
+        document.getElementById('start-date').value = '';
+        document.getElementById('end-date').value = '';
+        document.querySelector('select[name="product_type"]').value = 'all';
+        document.querySelector('select[name="group_by"]').value = 'none';
+        document.getElementById('filter-form').submit();
+    }
+
+    // Export report function
+    function exportReport(format) {
+        // Get current filter values and active tab
+        const datePreset = document.getElementById('date-preset').value;
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        const productType = document.querySelector('select[name="product_type"]').value;
+        const groupBy = document.querySelector('select[name="group_by"]').value;
+        const activeTab = document.getElementById('current-tab').value;
+
+        // Build the URL with query parameters
+        let url = `/agrodealer/generate_report?format=${format}&tab=${activeTab}`;
+        url += `&date_preset=${datePreset}`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        if (productType) url += `&product_type=${productType}`;
+        if (groupBy) url += `&group_by=${groupBy}`;
+
+        // Redirect to the export URL
+        window.location.href = url;
     }
 
     // Initialize Chart
@@ -282,14 +378,14 @@
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4
-                }, {
+            }, {
             label: 'Outbound Stock',
             data: {{ outbound_quantities| tojson |default ('[]') | safe }},
         borderColor: 'rgb(239, 68, 68)',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         tension: 0.4
-                }]
-            },
+            }]
+        },
         options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -322,26 +418,11 @@
             }
         }
     }
-        });
     });
-    // Add this to your existing script section
-    function exportReport(format) {
-        // Get current filter values
-        const datePreset = document.querySelector('select[name="date_preset"]')?.value || 'custom';
-        const startDate = document.querySelector('input[name="start_date"]')?.value || '';
-        const endDate = document.querySelector('input[name="end_date"]')?.value || '';
-        const productType = document.querySelector('select[name="product_type"]')?.value || 'all';
 
-        // Build the URL with query parameters
-        let url = `/agrodealer/generate_report?format=${format}`;
-        if (startDate) url += `&start_date=${startDate}`;
-        if (endDate) url += `&end_date=${endDate}`;
-        if (productType) url += `&product_type=${productType}`;
-
-        // Redirect to the export URL
-        window.location.href = url;
-    }
-
+    // Initialize date inputs toggle
+    toggleDateInputs();
+});
 </script>
 
 <style>
