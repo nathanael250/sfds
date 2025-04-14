@@ -875,7 +875,7 @@ def generate_report():
         start_date = datetime.strptime(start_date, "%Y-%m-%d")
     if end_date:
         end_date = datetime.strptime(end_date, "%Y-%m-%d")
-
+    
     # Build query
     query = Transaction.query.filter_by(sold_by=current_user.id)
 
@@ -885,10 +885,10 @@ def generate_report():
         query = query.filter(Transaction.created_at <= end_date)
     if product_type and product_type != 'all':
         query = query.join(Product).filter(Product.type == product_type)
-
+    
     # Execute query
     transactions = query.all()
-
+    
     if export_format == "pdf":
         try:
             # Create PDF buffer
@@ -956,16 +956,16 @@ def generate_report():
             # Get PDF data
             pdf = buffer.getvalue()
             buffer.close()
-            
-            # Create response
+        
+        # Create response
             filename = f"transactions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            
+        
             return send_file(
-                BytesIO(pdf),
+                    BytesIO(pdf),
                 download_name=filename,
                 as_attachment=True,
-                mimetype='application/pdf'
-            )
+                    mimetype='application/pdf'
+                )
         except Exception as e:
             flash(f"Error generating PDF: {str(e)}", "error")
             return redirect(url_for("agrodealer.transactions"))

@@ -27,10 +27,13 @@ def create_app(config_class=Config):
     if os.path.exists(wkhtmltopdf_path):
         pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
 
+
+    upload_folder = os.path.join(app.root_path, 'static', 'uploads')    
+    os.makedirs(upload_folder, exist_ok=True)
     # Create upload directory if it doesn't exist
     upload_folder = os.path.join(app.root_path, 'static', 'uploads')
     os.makedirs(upload_folder, exist_ok=True)
-
+    app.config['UPLOAD_FOLDER'] = upload_folder
     # Configure session
     app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem for session storage
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60)
